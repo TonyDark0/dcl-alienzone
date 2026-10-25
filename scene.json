@@ -1,0 +1,45 @@
+{
+  "ecs7": true,
+  "runtimeVersion": "7",
+  "display": {
+    "title": "DCL Alienzone",
+    "description": "Pass the alien before it takes control. A social push-your-luck game for 1–8 players.",
+    "navmapThumbnail": "images/scene-thumbnail.png"
+  },
+  "owner": "",
+  "contact": {
+    "name": "DCL Alienzone team",
+    "email": ""
+  },
+  "main": "bin/index.js",
+  "tags": ["game", "social"],
+  "scene": {
+    "parcels": ["0,0", "0,1", "1,0", "1,1"],
+    "base": "0,0"
+  },
+  "spawnPoints": [
+    {
+      "name": "spawn1",
+      "default": true,
+      "position": {
+        "x": [15, 17],
+        "y": [0, 0],
+        "z": [3, 5]
+      },
+      "cameraTarget": {
+        "x": 16,
+        "y": 1,
+        "z": 16
+      }
+    }
+  ],
+  "featureToggles": {
+    "voiceChat": "enabled",
+    "portableExperiences": "disabled"
+  },
+  "skyboxConfig": {
+    "fixedTime": 43200
+  },
+  "landscapeTerrain": false,
+  "authoritativeMultiplayer": true
+}

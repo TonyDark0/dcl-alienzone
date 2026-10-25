@@ -1,0 +1,44 @@
+{
+  "name": "dcl-alienzone",
+  "version": "1.0.0",
+  "description": "DCL Alienzone — a social push-your-luck game for Decentraland SDK7.",
+  "private": false,
+  "scripts": {
+    "start": "sdk-commands start",
+    "start:web": "sdk-commands start --web",
+    "start:multi": "sdk-commands start --multi-instance",
+    "deploy": "sdk-commands deploy",
+    "deploy:world": "sdk-commands deploy --target-content https://worlds-content-server.decentraland.org",
+    "build": "sdk-commands build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\" \"*.{json,md}\" \"docs/**/*.md\" \"design/**/*.md\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"tests/**/*.ts\" \"*.{json,md}\" \"docs/**/*.md\" \"design/**/*.md\"",
+    "ci": "npm run format:check && npm run typecheck && npm run test && npm run build",
+    "upgrade-sdk": "npm install --save-dev @dcl/sdk@latest",
+    "upgrade-sdk:next": "npm install --save-dev @dcl/sdk@next",
+    "server-logs": "sdk-commands sdk-server-logs"
+  },
+  "dependencies": {
+    "@dcl-sdk/utils": "1.4.0"
+  },
+  "devDependencies": {
+    "@dcl/js-runtime": "7.27.1-33086747846.commit-824d240",
+    "@dcl/sdk": "7.27.1-33086747846.commit-824d240",
+    "prettier": "3.9.6",
+    "typescript": "5.9.3",
+    "vitest": "3.2.7"
+  },
+  "engines": {
+    "node": ">=20.19.0",
+    "npm": ">=6.0.0"
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true,
+    "printWidth": 120,
+    "trailingComma": "none"
+  },
+  "license": "MIT"
+}

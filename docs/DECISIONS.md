@@ -1,0 +1,29 @@
+# Decision Log
+
+| ID    | Decision                                                                                                                | Reason                                                                              |
+| ----- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| D-001 | Ship a mobile-first SDK7 World for 1–8 humans.                                                                          | Matches the Decentraland target and social loop.                                    |
+| D-002 | Use a Decentraland authoritative multiplayer server and Scene Storage only.                                             | No external hosting or payment.                                                     |
+| D-003 | End every match after exactly three takeovers; no elimination.                                                          | Stable short sessions and full participation.                                       |
+| D-004 | Award pass POINTS only after a 2-second manual hold; consumed Skip grants +1.                                           | Prevents pass spam while rewarding a successful defense.                            |
+| D-005 | Score by remaining shared fuse: +1/+2/+3/+4.                                                                            | Rewards real danger rather than early safe waiting.                                 |
+| D-006 | No automatic pass or maximum hold; takeover costs 5 with a floor of 0.                                                  | Retaining the alien remains a deliberate risk.                                      |
+| D-007 | Deal two reactions and two interventions per seat.                                                                      | Keeps every player active between turns.                                            |
+| D-008 | Echo shares the fuse, awards POINTS and never attacks.                                                                  | Adds pressure without multiplying takeover state.                                   |
+| D-009 | Use skeletal GLB animation for MVP; defer VAT.                                                                          | Product-ready cross-client compatibility.                                           |
+| D-010 | Use fixed astronaut proxies and hide native avatars in the arena.                                                       | Consistent art direction and controlled performance.                                |
+| D-011 | Keep the lobby opaque and 2D.                                                                                           | Fast navigation without rendering unnecessary gameplay actors.                      |
+| D-012 | Keep Decentraland system settings and navigation native.                                                                | Avoid duplicated or conflicting platform UI.                                        |
+| D-013 | Use best POINTS and wins for the global leaderboard.                                                                    | Simple persistent goals without progression economy.                                |
+| D-014 | Rename the project and game to **DCL Alienzone**.                                                                       | The prior hackathon-specific name no longer represents the product.                 |
+| D-015 | Use `az_` for new asset filenames and `MAT_AZ_*` for future exports.                                                    | Keeps production naming aligned with the new brand.                                 |
+| D-016 | Make all UI, source messages and project documentation English.                                                         | One consistent public language for release and open source.                         |
+| D-017 | Selecting a card only loads it; the equipped slot performs activation.                                                  | Prevents accidental plays while browsing the hand.                                  |
+| D-018 | Reactions must be activated before they can resolve on an incoming alien.                                               | Makes both card categories explicit and keeps off-turn play active.                 |
+| D-019 | Consumed Skip awards +1 once, identically for the original and Echo.                                                    | Rewards avoiding a turn without rewarding collision avoidance or repeated requests. |
+| D-020 | Exactly one bonus Echo card is randomly assigned across all seats each round; the previous one expires.                 | Unique shared power; base hands remain finite.                                      |
+| D-021 | Chaos requires a player selection and redirects the caster's next pass; collisions and defenses still resolve normally. | Targeted agency with authoritative validation.                                      |
+| D-022 | Rename Cool Down to Freeze; retain the up-to-five-second deadline extension.                                            | New requested name with the established effect.                                     |
+| D-023 | Documentation calls the score points; score displays contain numbers only.                                              | Removes the former currency terminology.                                            |
+| D-024 | Original generated lettering and six transparent PNG power icons; 0.9-second central activation feedback.               | Unified visual language with quick reactions.                                       |
+| D-025 | Lobby browsing does not occupy a seat; Play joins the table.                                                            | Match entry happens through the explicit game action.                               |
