@@ -16,6 +16,7 @@ Dependency versions are recorded in `package-lock.json`. Each dependency retains
 
 ## Project art and audio
 
+- The sci-fi frame/fill PNGs are original procedural geometry and gradients authored in `scripts/Generate-SciFiSkins.ps1`; the generated approval sheet remains an art-source reference, not a cropped asset source.
 - Astronaut, seat, environment and atlas files were supplied by the creator for this game. Final ownership/redistribution declaration and any external atlas-source permissions: **TBD with the creator**.
 - Logo/card visuals were generated for the project; their prompt record is in [Generated UI Art Prompts](docs/ART_PROMPTS.md). Generated concepts are references, not proof of a final production model or exclusivity.
 - Music was supplied to the project. Composer/source and redistribution permission: **TBD with the creator**. Do not describe it as royalty-free without the actual permission record.

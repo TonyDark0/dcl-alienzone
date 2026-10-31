@@ -3,6 +3,8 @@ import { getPlayer } from '@dcl/sdk/src/players'
 
 import type { AlienId, CardCategory } from '../game/model/types'
 import type { MatchSnapshot } from '../game/runtime/matchEngine'
+import { currentContainmentTarget } from '../game/rules/containment'
+import { defaultLoadout, type MatchLoadout } from '../game/rules/loadouts'
 import { notifyAudioUserGesture } from '../presentation/audioDirector'
 import { room } from '../shared/messages'
 import { ServerStatus } from '../shared/schemas'
@@ -17,6 +19,7 @@ let lastHeartbeatSeenAt = 0
 let nextClientHeartbeatAt = 0
 let localReactionPresentationId = 0
 let serverWasAlive = false
+const containmentActions = new Map<string, { challengeId: string; targetIndex: number }>()
 
 const HEARTBEAT_FRESHNESS_MS = 7_000
 
@@ -58,6 +61,32 @@ export function setupGameClient() {
     }
   })
   room.onMessage('actionResult', (data) => {
+    const containmentAction = containmentActions.get(data.clientActionId)
+    if (containmentAction) {
+      containmentActions.delete(data.clientActionId)
+      const state = getUiState()
+      if (
+        state.containment?.id === containmentAction.challengeId &&
+        state.containmentTapFeedback?.targetIndex === containmentAction.targetIndex
+      ) {
+        const previous = state.containmentTapFeedback
+        if (previous.status === 'PENDING')
+          updateUiState({
+            containmentTapFeedback: {
+              ...previous,
+              status: data.accepted ? 'HIT' : 'MISS',
+              atMs: Date.now()
+            }
+          })
+      }
+      if (
+        !data.accepted &&
+        state.containment?.id === containmentAction.challengeId &&
+        state.containmentPendingTarget === containmentAction.targetIndex
+      )
+        updateUiState({ containmentPendingTarget: null })
+      return
+    }
     if (data.accepted) updateUiState({ lastActionError: null, passPending: false })
     else updateUiState({ lastActionError: data.reason, announcement: data.reason, passPending: false })
   })
@@ -116,9 +145,9 @@ export function setupGameClient() {
   })
 }
 
-export function requestReady() {
+export function requestReady(loadout: MatchLoadout = defaultLoadout()) {
   notifyAudioUserGesture()
-  void room.send('requestReady', envelope('ready'))
+  void room.send('requestReady', { ...envelope('ready'), loadout })
 }
 
 export function requestRematch() {
@@ -142,6 +171,59 @@ export function requestPass() {
   if (!alien || !state.canLocalPass || state.passPending) return
   updateUiState({ passPending: true })
   void room.send('requestPass', { ...envelope('pass'), alienId: alien.id, turn: alien.turn })
+}
+
+export function requestMove(forward: number, aimYaw: number, sequence: number) {
+  const state = getUiState()
+  if (!roomReady || !serverWasAlive || !state.arena || state.localSeatId === null || state.phase !== 'HOLDING') return
+  void room.send('moveIntent', { matchId: state.matchId, round: state.round, sequence, forward, aimYaw })
+}
+
+export function requestDeckOrder(cardIds: string[]) {
+  notifyAudioUserGesture()
+  void room.send('orderDeck', { ...envelope('deck-order'), cardIds })
+}
+export function requestCardTarget(cardId: string, targetSeatId: number) {
+  notifyAudioUserGesture()
+  void room.send('chooseCardTarget', { ...envelope('card-target'), cardId, targetSeatId })
+}
+export function requestCurrentCard() {
+  const state = getUiState()
+  const card = state.cards.find((candidate) => candidate.state === 'ARMED')
+  if (state.phase !== 'HOLDING' || !card) return
+  const now = state.snapshotServerNow + Math.max(0, Date.now() - state.snapshotReceivedAtMs) / 1000
+  if (now < state.cardReadyAt) return
+  if (card.type === 'CHAOS' && card.targetSeatId === undefined) {
+    updateUiState({ lastActionError: 'Choose a Chaos target in ORDER DECK first.' })
+    return
+  }
+  requestActivateCard(card.id)
+}
+
+export function requestContainmentTap(challengeId: string, targetIndex: number) {
+  const state = getUiState()
+  const challenge = state.containment
+  const now = state.snapshotServerNow + Math.max(0, Date.now() - state.snapshotReceivedAtMs) / 1000
+  if (
+    !roomReady ||
+    state.phase !== 'TAKEOVER' ||
+    !challenge ||
+    challenge.id !== challengeId ||
+    state.localSeatId !== challenge.victimSeatId ||
+    currentContainmentTarget(challenge, now) !== targetIndex ||
+    challenge.hits[targetIndex] ||
+    state.containmentPendingTarget === targetIndex
+  )
+    return
+  notifyAudioUserGesture()
+  const action = envelope('containment')
+  if (containmentActions.size >= 32) containmentActions.clear()
+  containmentActions.set(action.clientActionId, { challengeId, targetIndex })
+  updateUiState({
+    containmentPendingTarget: targetIndex,
+    containmentTapFeedback: { challengeId, targetIndex, status: 'PENDING', atMs: Date.now() }
+  })
+  void room.send('containmentTap', { ...action, challengeId, targetIndex })
 }
 
 export function requestEquipCard(cardId: string | null, category: CardCategory, targetSeatId?: number) {

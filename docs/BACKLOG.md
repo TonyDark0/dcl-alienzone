@@ -13,6 +13,11 @@
 
 ## MVP completion
 
+- Native-validate the delivered AST_RUNNING / AST_RUNNING_ALIEN cycles, blends, and speed scaling in all eight variants. No separate slow/turbo loops are required.
+- Author the divided running map and shared obstacle/navigation rules; the current preview uses open bounds only.
+- Native desktop/mobile running input, contact latency, camera/roof occlusion and takeover pose playtests.
+- Approve milestones, calendar, duplicate rules and reward pool before connecting [progression](PROGRESSION_PROPOSAL.md) to Storage or UI claims.
+
 - Integrate production alien GLB.
 - Integrate central egg and hatch animation.
 - Integrate takeover VFX.

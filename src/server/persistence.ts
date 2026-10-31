@@ -7,7 +7,8 @@ export interface LeaderboardEntry {
   wins: number
 }
 
-const LEADERBOARD_KEY = 'alienzone:leaderboard:global:v1'
+// Keep legacy danger-band records untouched; running scores are not comparable.
+export const LEADERBOARD_KEY = 'alienzone:leaderboard:running:v1'
 
 export async function loadLeaderboard(): Promise<LeaderboardEntry[]> {
   const raw = await Storage.get<string>(LEADERBOARD_KEY)

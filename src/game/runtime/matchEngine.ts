@@ -9,6 +9,18 @@ import {
 } from '../model/types'
 import { activeReaction, dealHands, loadedCard, nextRandom } from '../rules/deck'
 import { applyTakeoverPenalty, heatForSuccessfulPass } from '../rules/scoring'
+import type { ChaseArenaState } from '../rules/chase'
+import {
+  CONTAINMENT_CONFIG,
+  botContainmentAttempt,
+  canHitContainmentTarget,
+  containmentResolvesAt,
+  containmentTargetOpensAt,
+  createContainmentChallenge,
+  currentContainmentTarget,
+  earnsContainmentBonus,
+  type ContainmentChallenge
+} from '../rules/containment'
 
 export interface AlienState {
   id: AlienId
@@ -29,7 +41,7 @@ export interface GameSeat extends SeatState {
 export interface MatchEvent {
   sequence: number
   at: number
-  kind: 'PASS' | 'CARD' | 'REACTION_RESOLVED' | 'TAKEOVER' | 'ROUND'
+  kind: 'PASS' | 'CARD' | 'REACTION_RESOLVED' | 'TAKEOVER' | 'ROUND' | 'CONTAINMENT' | 'COIN'
   alienId: AlienId
   path: SeatId[]
   heat: number
@@ -44,6 +56,7 @@ export interface SeatReactionState {
 }
 
 export interface GameState {
+  arena?: ChaseArenaState
   matchId: string
   rulesVersion: string
   seed: number
@@ -60,6 +73,7 @@ export interface GameState {
   seats: GameSeat[]
   takeovers: number
   takeoverVictimSeatId: SeatId | null
+  containment: ContainmentChallenge | null
   echoUsedThisRound: boolean
   reactions: SeatReactionState[]
   events: MatchEvent[]
@@ -96,7 +110,7 @@ export class MatchEngine {
     const hands = dealHands(GAME_CONFIG.seats, seed)
     this.state = {
       matchId,
-      rulesVersion: '3.0-targeted-powers',
+      rulesVersion: '3.1-takeover-containment',
       seed,
       revision: 0,
       sequence: 0,
@@ -110,6 +124,7 @@ export class MatchEngine {
       aliens: [],
       takeovers: 0,
       takeoverVictimSeatId: null,
+      containment: null,
       echoUsedThisRound: false,
       reactions: [],
       events: [],
@@ -130,12 +145,12 @@ export class MatchEngine {
     }
   }
 
-  private pick<T>(items: T[]): T {
+  protected pick<T>(items: T[]): T {
     this.random = nextRandom(this.random)
     return items[this.random % items.length]
   }
 
-  private emit(
+  protected emit(
     kind: MatchEvent['kind'],
     alienId: AlienId,
     path: SeatId[],
@@ -196,7 +211,11 @@ export class MatchEngine {
     this.beginRound(this.pick(this.state.seats).id)
   }
 
-  private beginRound(holder: SeatId) {
+  protected finishCrewSeating() {
+    this.start()
+  }
+
+  protected beginRound(holder: SeatId) {
     const s = this.state
     s.round++
     s.phase = 'HOLDING'
@@ -211,6 +230,7 @@ export class MatchEngine {
     const echoOwner = this.pick(s.seats)
     echoOwner.hand.push({ id: `${s.matchId}-echo-${s.round}`, type: 'DUPLICATE', state: 'AVAILABLE' })
     s.takeoverVictimSeatId = null
+    s.containment = null
     s.aliens = [{ id: 'ORIGINAL', holderSeatId: holder, heldSince: s.now, readyAt: s.now, turn: 0 }]
     for (const seat of s.seats) seat.hiddenUntil = 0
     this.emit('ROUND', 'ORIGINAL', [holder], 0, `ROUND ${s.round} / 3`)
@@ -224,7 +244,7 @@ export class MatchEngine {
     return this.state.aliens.find((alien) => alien.id !== id)?.holderSeatId
   }
 
-  private active(): boolean {
+  protected active(): boolean {
     if (this.state.phase !== 'HOLDING') return false
     if (this.state.now >= this.state.fuseEndsAt) {
       this.takeover()
@@ -399,23 +419,65 @@ export class MatchEngine {
     return ok()
   }
 
-  private takeover() {
+  protected takeoverScore(score: number): number {
+    return applyTakeoverPenalty(score)
+  }
+
+  protected takeover() {
     const s = this.state
     if (s.phase !== 'HOLDING') return
     const original = s.aliens.find((alien) => alien.id === 'ORIGINAL')!
     const victim = s.seats[original.holderSeatId]
     const before = victim.heat
-    victim.heat = applyTakeoverPenalty(victim.heat)
+    victim.heat = this.takeoverScore(victim.heat)
     victim.takeovers++
     s.takeovers++
     s.takeoverVictimSeatId = victim.id
     s.aliens = [original]
     s.phase = 'TAKEOVER'
     s.phaseEndsAt = s.now + GAME_CONFIG.takeoverSequenceSeconds
+    s.containment = createContainmentChallenge(s.matchId, s.seed, s.round, victim.id, s.now)
     this.emit('TAKEOVER', 'ORIGINAL', [victim.id], victim.heat - before, `${victim.displayName}: TAKEOVER`)
   }
 
-  private bots() {
+  containmentTap(seatId: SeatId, challengeId: string, targetIndex: number): ActionResult {
+    const s = this.state
+    const challenge = s.containment
+    if (s.phase !== 'TAKEOVER' || !challenge || challenge.id !== challengeId)
+      return no('That containment challenge has ended.')
+    if (challenge.victimSeatId !== seatId) return no('Only the attacked astronaut can contain this alien.')
+    if (!canHitContainmentTarget(challenge, targetIndex, s.now)) return no('That target is not available.')
+    challenge.hits[targetIndex] = true
+    s.revision++
+    return ok()
+  }
+
+  private updateContainment() {
+    const s = this.state
+    const challenge = s.containment
+    if (!challenge || challenge.resolved) return
+    const victim = s.seats[challenge.victimSeatId]
+    const index = currentContainmentTarget(challenge, s.now)
+    if (victim.isBot && index !== null && !challenge.hits[index]) {
+      const attempt = botContainmentAttempt(s.seed, s.round, victim.id, index)
+      if (attempt.hit && s.now >= containmentTargetOpensAt(challenge, index) + attempt.delaySeconds)
+        this.containmentTap(victim.id, challenge.id, index)
+    }
+    if (s.now + 1e-8 < containmentResolvesAt(challenge)) return
+    challenge.resolved = true
+    challenge.bonusAwarded = earnsContainmentBonus(challenge)
+    challenge.contained = s.takeovers < GAME_CONFIG.takeoversPerMatch
+    if (challenge.bonusAwarded) victim.heat += CONTAINMENT_CONFIG.bonusPoints
+    this.emit(
+      'CONTAINMENT',
+      'ORIGINAL',
+      [victim.id],
+      challenge.bonusAwarded ? CONTAINMENT_CONFIG.bonusPoints : 0,
+      `${victim.displayName}: ${challenge.contained ? 'ALIEN CONTAINED' : 'CONTAINMENT BREACHED'}`
+    )
+  }
+
+  protected bots() {
     const s = this.state
     for (const seat of s.seats) {
       if (!seat.isBot) continue
@@ -460,6 +522,8 @@ export class MatchEngine {
     }
   }
 
+  protected updateGameplay(_seconds: number) {}
+
   advance(seconds: number) {
     if (!Number.isFinite(seconds) || seconds <= 0) return
     const end = this.state.now + seconds
@@ -470,12 +534,16 @@ export class MatchEngine {
         s.now = end
         break
       }
-      s.now = Math.min(end, s.now + 0.05)
+      const step = Math.min(end - s.now, 0.05)
+      s.now = Math.min(end, s.now + step)
       s.reactions = s.reactions.filter((reaction) => reaction.until > s.now)
       if (s.phase === 'COUNTDOWN' && s.now + 1e-8 >= s.phaseEndsAt) this.beginCrewSeating()
-      else if (s.phase === 'ROUND_START' && s.now + 1e-8 >= s.phaseEndsAt) this.start()
-      else if (s.phase === 'TAKEOVER' && s.now + 1e-8 >= s.phaseEndsAt) {
-        if (s.takeovers === 3) {
+      else if (s.phase === 'ROUND_START' && s.now + 1e-8 >= s.phaseEndsAt) this.finishCrewSeating()
+      else if (s.phase === 'DECK_SETUP' && s.now + 1e-8 >= s.phaseEndsAt) this.start()
+      else if (s.phase === 'TAKEOVER') {
+        this.updateContainment()
+        if (s.now + 1e-8 < s.phaseEndsAt) continue
+        if (s.takeovers === GAME_CONFIG.takeoversPerMatch) {
           s.phase = 'MATCH_RESULT'
           s.takeoverVictimSeatId = null
           s.revision++
@@ -485,6 +553,7 @@ export class MatchEngine {
           this.takeover()
           continue
         }
+        this.updateGameplay(step)
         if (s.now + 1e-8 >= this.nextBotAt) {
           this.nextBotAt = s.now + 0.25
           this.bots()
@@ -506,8 +575,9 @@ export class MatchEngine {
       holderSeatId: original?.holderSeatId ?? 0,
       heldForSeconds: Math.max(0, this.state.now - (original?.heldSince ?? this.state.now)),
       fuseRemainingSeconds: visibleRemaining,
-      countdownRemainingSeconds:
-        this.state.phase === 'COUNTDOWN' ? Math.max(0, this.state.phaseEndsAt - this.state.now) : null,
+      countdownRemainingSeconds: ['COUNTDOWN', 'DECK_SETUP'].includes(this.state.phase)
+        ? Math.max(0, this.state.phaseEndsAt - this.state.now)
+        : null,
       localHand: localSeatId === null ? [] : this.state.seats[localSeatId].hand
     }
   }

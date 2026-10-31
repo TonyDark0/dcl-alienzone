@@ -12,11 +12,14 @@ import { Vector3 } from '@dcl/sdk/math'
 import type { MatchPhase } from '../game/model/types'
 import { clearArenaActors, createArenaActors, updateArenaActors } from '../presentation/arenaActors'
 import { getUiState } from '../ui/state/uiState'
+import { clearArenaCoins, updateArenaCoins } from '../presentation/arenaCoins'
+import { clearArenaPowers, updateArenaPowers } from '../presentation/arenaPowers'
 import { setOrbitCameraActive } from './orbitCamera'
 
 const ARENA_PHASES: MatchPhase[] = [
   'COUNTDOWN',
   'ROUND_START',
+  'DECK_SETUP',
   'HOLDING',
   'RESOLVING_CHAIN',
   'TAKEOVER',
@@ -28,8 +31,8 @@ let currentMode: 'LOBBY' | 'MATCH' | null = null
 
 function createAvatarHideArea() {
   const area = engine.addEntity()
-  const size = Vector3.create(32, 30, 32)
-  Transform.create(area, { position: Vector3.create(16, 15, 16), scale: size })
+  const size = Vector3.create(48, 30, 32)
+  Transform.create(area, { position: Vector3.create(24, 15, 16), scale: size })
   AvatarModifierArea.create(area, {
     area: size,
     modifiers: [AvatarModifierType.AMT_HIDE_AVATARS, AvatarModifierType.AMT_DISABLE_PASSPORTS],
@@ -51,7 +54,7 @@ export function setupSceneLifecycle() {
     })
   })
   TouchScreenControls.hideAll()
-  TouchScreenControls.hideJoystick()
+  TouchScreenControls.showJoystick()
   TouchScreenControls.hideCrosshair()
   createAvatarHideArea()
 }
@@ -65,6 +68,8 @@ export function updateSceneLifecycle(phase: MatchPhase, deltaSeconds: number) {
   if (nextMode === currentMode) {
     if (matchActive) {
       const state = getUiState()
+      updateArenaCoins(arenaRoot!, phase, state.arena?.coins ?? [], deltaSeconds)
+      updateArenaPowers(arenaRoot!, deltaSeconds)
       updateArenaActors(
         deltaSeconds,
         phase,
@@ -86,6 +91,8 @@ export function updateSceneLifecycle(phase: MatchPhase, deltaSeconds: number) {
       createArenaActors(arenaRoot, getUiState().matchId)
     }
     const state = getUiState()
+    updateArenaCoins(arenaRoot, phase, state.arena?.coins ?? [], deltaSeconds)
+    updateArenaPowers(arenaRoot, deltaSeconds)
     updateArenaActors(
       deltaSeconds,
       phase,
@@ -99,6 +106,8 @@ export function updateSceneLifecycle(phase: MatchPhase, deltaSeconds: number) {
   }
 
   if (arenaRoot !== null) {
+    clearArenaCoins()
+    clearArenaPowers()
     engine.removeEntityWithChildren(arenaRoot)
     arenaRoot = null
     clearArenaActors()

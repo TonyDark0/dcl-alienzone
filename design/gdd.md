@@ -1,11 +1,15 @@
 # DCL Alienzone
 
+> Current gameplay revision: [v6 Round Powers and Loadouts](../docs/ROUND_POWERS_AND_LOADOUTS.md). Three prepared round decks, board-only Turbo/Echo, random queue-locking Chaos, Shadow/Symbiosis/Vacune, activation points and 2.5s anti-return supersede the older card examples in this research/design snapshot. Retention, rewards and extra card diversity remain future work.
+
 Decentraland Creator Success Program — working V0 application GDD.
+
+> **Running pivot, 2026-10-29:** This application draft describes the previous seated design and is not ready for submission. The local server now runs a revised 30×15m open-room tag preview, centered on the existing room, with WASD / joystick movement, explicit nearby throws, +1 per accepted transfer/coin, ten shared coins per round, +1 untouched rounds, containment, delivered running clips and three starter powers. A local suit reveal zooms out before play; all three attack close-ups are shared, with local-only shake/red/tapping. See [current rules](../docs/GAME_RULES.md), [animation delivery](../docs/ANIMATION_CONTRACT.md) and the [not-yet-live progression proposal](../docs/PROGRESSION_PROPOSAL.md). Obstacle navigation, reward economy and native playtest evidence remain pending. Revalidate the core loop before revising the historical application claims below or publishing this draft.
 
 | Field                     | Answer                                                                                                                                                    |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Public experience title   | DCL Alienzone. Owner IP / Content Policy declaration: TBD. Name screening: not searched. Unresolved: title clearance and final asset-rights confirmation. |
-| Deployment target         | Decentraland World; exact DCL NAME and public visit URL: TBD. Approved scene layout: 2×2.                                                                 |
+| Deployment target         | Decentraland World; exact DCL NAME and public visit URL: TBD. Approved scene layout: 3×2 (48×32m).                                                        |
 | Studio / team name        | DCL Alienzone project; GitHub owner: TonyDark0. Formal studio name: TBD.                                                                                  |
 | Date                      | 2026-10-25                                                                                                                                                |
 | Contact (Discord + email) | TBD. Public project contact: GitHub issues after repository publication.                                                                                  |

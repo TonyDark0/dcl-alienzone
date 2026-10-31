@@ -2,7 +2,8 @@ import ReactEcs, { Label, UiEntity } from '@dcl/sdk/react-ecs'
 import { playUiSound } from '../../presentation/audioDirector'
 
 import type { UiCardView } from '../state/uiState'
-import { isControlHovered, setControlHovered } from '../state/interactionState'
+import { getControlMotion, pressControl, setControlHovered } from '../state/interactionState'
+import { SciFiSurface } from './SciFiSurface'
 import { UI_COLORS, UI_SPACING, UI_TYPE } from '../theme/tokens'
 
 interface CardTileProps {
@@ -25,11 +26,15 @@ const STATE_COLOR = {
 } as const
 
 const STATE_HINT = {
-  AVAILABLE: 'TAP TO ARM',
+  AVAILABLE: 'TAP TO LOAD',
   ARMED: 'TAP TO ACTIVATE',
   ACTIVE: 'READY',
-  SPENT: 'DISCARDED'
+  SPENT: 'SPENT'
 } as const
+
+export function cardTileSize(compact: boolean) {
+  return { width: compact ? 128 : 148, height: compact ? 148 : 168 }
+}
 
 export function CardTile({
   card,
@@ -42,11 +47,23 @@ export function CardTile({
   stateLabel,
   actionLabel
 }: CardTileProps) {
-  const tone = STATE_COLOR[card.state]
+  const tone =
+    card.tier && card.state !== 'SPENT'
+      ? card.tier === 'GENERAL'
+        ? UI_COLORS.alien
+        : card.tier === 'EPIC'
+          ? UI_COLORS.danger
+          : UI_COLORS.violet
+      : card.state === 'AVAILABLE' || card.state === 'ARMED'
+        ? card.category === 'INTERVENTION'
+          ? UI_COLORS.violet
+          : UI_COLORS.cyan
+        : STATE_COLOR[card.state]
   const disabled = card.state === 'SPENT' || interactionDisabled || passive
   const visuallyDisabled = card.state === 'SPENT' || interactionDisabled
   const controlId = interactionId ?? `card:${card.name}`
-  const hovered = !disabled && isControlHovered(controlId)
+  const motion = getControlMotion(controlId, disabled)
+  const size = cardTileSize(compact)
   const detail =
     actionLabel ?? (interactionDisabled ? 'LOCKED' : mini || compact ? STATE_HINT[card.state] : card.description)
   const displayName = card.name
@@ -54,24 +71,20 @@ export function CardTile({
   return (
     <UiEntity
       uiTransform={{
-        width: mini ? (compact ? 94 : 118) : compact ? 196 : 246,
-        height: mini ? (compact ? 82 : 98) : compact ? 82 : 100,
-        padding: mini ? UI_SPACING.xs : compact ? UI_SPACING.sm : UI_SPACING.md,
+        width: mini ? size.width : compact ? 224 : 268,
+        height: mini ? size.height : compact ? 180 : 204,
+        flexShrink: 0,
+        padding: mini ? 12 : UI_SPACING.md,
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: { left: hovered ? 10 : 6, top: hovered ? 3 : 2, right: 2, bottom: 2 },
-        borderColor: tone,
-        pointerFilter: 'block',
-        opacity: visuallyDisabled ? 0.58 : hovered ? 1 : 0.94
-      }}
-      uiBackground={{
-        color: disabled ? UI_COLORS.space950 : hovered ? UI_COLORS.space700Hover : UI_COLORS.space900Glass
+        pointerFilter: 'block'
       }}
       onMouseDown={
         disabled
           ? undefined
           : () => {
+              pressControl(controlId)
               playUiSound('press')
               onPress()
             }
@@ -86,10 +99,11 @@ export function CardTile({
       }
       onMouseLeave={disabled ? undefined : () => setControlHovered(controlId, false)}
     >
+      <SciFiSurface tone={visuallyDisabled ? UI_COLORS.disabled : tone} hover={motion.hover} press={motion.press} />
       <UiEntity
         uiTransform={{
           width: '100%',
-          height: mini ? (compact ? 18 : 22) : compact ? 24 : 30,
+          height: mini ? 30 : 34,
           flexShrink: 0,
           flexDirection: 'column',
           alignItems: 'center',
@@ -98,46 +112,38 @@ export function CardTile({
       >
         <Label
           value={displayName}
-          fontSize={
-            mini
-              ? displayName.length > 10
-                ? compact
-                  ? 9
-                  : 10
-                : compact
-                  ? 11
-                  : 13
-              : compact
-                ? UI_TYPE.body
-                : UI_TYPE.strong
-          }
+          fontSize={mini ? (compact ? 17 : 19) : UI_TYPE.strong}
           color={UI_COLORS.white}
           textAlign="middle-center"
           uiTransform={{ width: '100%', height: '100%' }}
         />
       </UiEntity>
       <Label
-        value={stateLabel ?? card.state}
-        fontSize={mini ? 8 : compact ? 10 : UI_TYPE.caption}
+        value={stateLabel ?? (card.state === 'ARMED' ? 'LOADED' : card.state)}
+        fontSize={mini ? 12 : 14}
         color={tone}
         textAlign="middle-center"
-        uiTransform={{ width: '100%', height: mini ? 10 : 16, flexShrink: 0 }}
+        uiTransform={{ width: '100%', height: 20, flexShrink: 0 }}
       />
-      {mini ? (
-        <UiEntity
-          uiTransform={{ width: compact ? 24 : 30, height: compact ? 24 : 30, flexShrink: 0 }}
-          uiBackground={{
-            texture: { src: card.icon, filterMode: 'bi-linear', wrapMode: 'clamp' },
-            textureMode: 'stretch'
-          }}
-        />
-      ) : null}
+      <UiEntity
+        uiTransform={{
+          width: compact ? 46 : 56,
+          height: compact ? 46 : 56,
+          flexShrink: 0,
+          margin: { top: 2, bottom: 4 },
+          pointerFilter: 'none'
+        }}
+        uiBackground={{
+          texture: { src: card.icon, filterMode: 'bi-linear', wrapMode: 'clamp' },
+          textureMode: 'stretch'
+        }}
+      />
       <Label
         value={detail}
-        fontSize={mini ? 8 : compact ? 10 : UI_TYPE.caption}
+        fontSize={mini ? 11 : UI_TYPE.caption}
         color={visuallyDisabled ? UI_COLORS.textMuted : tone}
         textAlign="middle-center"
-        uiTransform={{ width: '100%', height: mini ? 10 : 18, flexShrink: 0 }}
+        uiTransform={{ width: '100%', height: mini ? 18 : 40, flexShrink: 0 }}
       />
     </UiEntity>
   )

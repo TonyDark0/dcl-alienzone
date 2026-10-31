@@ -2,9 +2,9 @@
 
 ## Product statement
 
-DCL Alienzone is a mobile-first social push-your-luck game for Decentraland SDK7. One to eight players are represented by fixed astronaut proxies in a spaceship containment room. A cute baby alien escaped from a central egg and takes over the astronaut holding the original creature when the shared fuse expires.
+DCL Alienzone is a mobile-first social running-tag game for Decentraland SDK7. One to eight players control astronaut proxies inside a spaceship after a shared seated introduction. A baby alien attacks the holder of the original creature when the shared fuse expires.
 
-Players earn POINTS by holding an alien for at least two seconds and completing a manual pass. Waiting until the fuse is dangerous awards more POINTS. The match ends after exactly three takeovers; nobody is eliminated.
+Players earn +1 per accepted nearby throw, +1 per shared coin collected, +1 for a round without receiving either alien and an optional +1 containment bonus. Ten coins spawn per round, thirty per match, without replenishment; leftovers expire. The match ends after exactly three takeovers; nobody is eliminated. A local suit reveal zooms out to a fixed-heading, nominal 60° drone tracking the local astronaut, 10% closer than the previous shared view. The revised area remains 30×15m, with responsive screen-relative WASD / mobile joystick movement. The two running loops are integrated; native visual checks and a divided arena remain production dependencies. Coins are match points; progression is a proposal, not a live economy.
 
 ## Product goals
 
@@ -17,11 +17,11 @@ Players earn POINTS by holding an alien for at least two seconds and completing 
 
 ## Core loop
 
-1. Enter the opaque 2D lobby.
-2. Start a match; empty seats become bots.
-3. The arena and fixed camera are prepared during the countdown.
-4. Hold and pass the original alien or non-attacking ECHO.
-5. Arm reactions and interventions while other players act.
+1. Enter the opaque 2D home menu; Play opens the three-round, three-card-per-round deck builder before matchmaking.
+2. Confirm the validated plan and join a match; empty seats become bots with valid varied plans.
+3. The arena and local suit camera reveal are prepared during the countdown.
+4. Review the first-round order during a five-second setup, then run, evade and explicitly throw the original alien or Echo. Same-alien immediate return is blocked for 2.5s.
+5. Activate the first card for +1, reorder the current queue without pausing (except armed Chaos), collect board-only Turbo/Echo and use decoys, protection or a straight shot. Discard leftovers and use the next prepared deck each round. See [v6 Powers](ROUND_POWERS_AND_LOADOUTS.md).
 6. The original alien triggers a takeover when the shared fuse expires.
 7. Repeat until the third takeover.
 8. Show the containment ranking, persist human records and offer rematch or main menu.
@@ -29,7 +29,7 @@ Players earn POINTS by holding an alien for at least two seconds and completing 
 ## Platform constraints
 
 - Decentraland SDK7.
-- Four parcels in a centered 2×2 World layout.
+- Six parcels in an owner-approved 3×2 World layout (48×32m).
 - Native Explorer on desktop and mobile; mobile is the primary target.
 - Authoritative Decentraland multiplayer server.
 - Decentraland Scene Storage for the global leaderboard.
@@ -43,7 +43,7 @@ Players earn POINTS by holding an alien for at least two seconds and completing 
 - Casual and social Decentraland players.
 - One to eight humans, completed to eight seats by bots.
 - Target match length: approximately 2–4 minutes.
-- One-button core action supported by strategic cards.
+- Directional running/tagging supported by strategic cards.
 
 ## Team responsibilities
 

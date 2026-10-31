@@ -1,44 +1,68 @@
 # Cards Reference
 
-These generated PNGs are the production UI assets, not just sketches. All six use transparent alpha at 256×256. Dark eyes, clock faces and internal details remain opaque. The runtime uses them in the hand, instructions and central activation announcement.
+The six original PNGs use transparent alpha at 256×256; internal dark details remain opaque. Some are reused as temporary icons for the new powers below. Runtime uses green General, red Epic and purple Rare frames. Prepare three round decks of three cards; F / touch activates the current queue head for +1. Turbo/Echo are board-only. See [v6 Rules](ROUND_POWERS_AND_LOADOUTS.md).
 
-## REVERSE
+## INVISIBLE — replaces Reverse
 
-![REVERSE](../assets/Images/ui/cards/az_card_reverse_v001.png)
+![Temporary INVISIBLE artwork](../assets/Images/ui/cards/az_card_hidden_watch_v001.png)
 
-Reaction. Return the incoming alien to its previous source and reverse direction.
+General. Invisible to others for 10s, except Vacune users; not immunity. Temporarily reuses Hidden Watch artwork. Reverse is not dealt.
 
 ## SKIP
 
 ![SKIP](../assets/Images/ui/cards/az_card_skip_v001.png)
 
-Reaction. Avoid receiving an incoming alien and earn +1 when the card resolves.
+General. Immune to incoming aliens for 3s, without removing one already held. Accepted activation awards +1.
 
 ## CHAOS
 
 ![CHAOS](../assets/Images/ui/cards/az_card_chaos_v001.png)
 
-Intervention. Choose another player while loading. Activate to redirect your own next pass.
+Epic, one slot per match. Activate to irreversibly arm a random redirect for the next incoming alien, locking the queue until resolution or round end. No target selection; no immediate redirect of an alien already held. Respect return protection, immunity and occupancy.
 
 ## HIDDEN WATCH
 
 ![HIDDEN WATCH](../assets/Images/ui/cards/az_card_hidden_watch_v001.png)
 
-Intervention. Conceal the chosen alien holder's exact timer for six seconds.
+General. Conceal the selected alien holder's exact timer for six seconds.
 
 ## FREEZE
 
 ![FREEZE](../assets/Images/ui/cards/az_card_freeze_v001.png)
 
-Intervention. Extend the shared deadline by up to five seconds, with the round cap.
+General. Slow others to 50% for 2s; the timer continues. Vacune resists. Turbo is cancelled to normal speed instead, without slowing that hit.
 
 ## ECHO
 
 ![ECHO](../assets/Images/ui/cards/az_card_echo_v001.png)
 
-Unique round bonus. Exactly one card across all players each round. Assigned at random. Creates a non-attacking scoring alien.
+Rare board pickup. One appearance per match, in a random round. Spawns on a random eligible astronaut other than the collector/original holder; Vacune blocks receiving it. Passable for +1, same original fuse, no attack, removed at takeover. Never in a deck.
 
-## Lettering
+## TURBO
+
+![Temporary TURBO artwork](../assets/Images/ui/cards/az_card_reverse_v001.png)
+
+Rare board pickup. One appearance per round. Move and animate at 2x until round end; Freeze permanently cancels the boost to 1x without slowing that hit. Never in a deck. Temporarily reuses retired Reverse arrow art.
+
+## SHADOW
+
+![Temporary SHADOW icon](../assets/Images/ui/cards/az_card_hidden_watch_v001.png)
+
+Epic. Five-second roaming clone with the owner's skin/name. Natural expiry blinks then fades; an attempted throw destroys it immediately, leaves the attacker holding and awards the owner one extra point. Activation separately awards +1. The owner and Vacune users identify it.
+
+## SYMBIOSIS
+
+![Temporary SYMBIOSIS icon](../assets/Images/ui/cards/az_card_reverse_v001.png)
+
+Epic. Straight shot along facing, up to 5m. First body only, respecting protection. A miss consumes the card but keeps the alien. Requires an arrived alien. Temporary arrow art; the short flight marker reuses existing alien art.
+
+## VACUNE
+
+![Temporary VACUNE icon](../assets/Images/ui/cards/az_card_skip_v001.png)
+
+Epic. Until round end: resist Freeze/incoming Echo, see Invisible and identify Shadow. Not immune to the original alien and does not remove one already held. Temporarily reuses Skip art.
+
+## Lettering reference
 
 ![Alienzone](../assets/Images/ui/branding/az_logo_alienzone_v001.png)
 

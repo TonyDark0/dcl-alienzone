@@ -1,27 +1,31 @@
-import { engine, Entity, MainCamera, PointerLock, PrimaryPointerInfo, Transform, VirtualCamera } from '@dcl/sdk/ecs'
-import { Vector3 } from '@dcl/sdk/math'
-import { isMobile } from '@dcl/sdk/platform'
+import {
+  engine,
+  Entity,
+  MainCamera,
+  PointerLock,
+  PrimaryPointerInfo,
+  Transform,
+  VirtualCamera,
+  UiCanvasInformation
+} from '@dcl/sdk/ecs'
+import { Quaternion, Vector3 } from '@dcl/sdk/math'
 
 import type { SeatId } from '../game/model/types'
-import { getSeatWorldPosition } from '../presentation/arenaActors'
-import { orbitPoint } from '../presentation/orbitMath'
+import { getRenderedSeatPose, getSeatWorldPosition } from '../presentation/arenaActors'
+import { globalDronePose, trackedDronePose } from '../presentation/chaseCameraMath'
 import { getUiState } from '../ui/state/uiState'
 
-const CENTER = Vector3.create(16, 0.665, 16)
-const RADIUS = 3.8556
-const HEIGHT = 3.15
-const RADIANS_PER_SCREEN_PIXEL = 0.006
-const MAX_SCREEN_DELTA_PER_FRAME = 100
+const CENTER = Vector3.create(globalDronePose().target.x, 0.665, globalDronePose().target.z)
 const TAKEOVER_ENTER_SECONDS = 0.48
 const TAKEOVER_RETURN_AT_SECONDS = 4.15
 const TAKEOVER_RETURN_SECONDS = 0.62
 const LOCAL_SHAKE_METERS = 0.035
+const INTRO_HOLD_SECONDS = 0.6
+const INTRO_ZOOM_SECONDS = 1.8
 
 type CinematicMode = 'ORBIT' | 'ENTERING' | 'HOLDING' | 'RETURNING' | 'LOCKED_HOME'
 
 let cameraEntity: Entity | null = null
-let targetEntity: Entity | null = null
-let angleRadians = Math.PI
 let active = false
 let mode: CinematicMode = 'ORBIT'
 let wasTakeover = false
@@ -33,6 +37,18 @@ let transitionFromTarget = Vector3.Zero()
 let takeoverPosition = Vector3.Zero()
 let takeoverTarget = Vector3.Zero()
 let normalPosition = Vector3.Zero()
+let normalTarget = CENTER
+let cameraPosition = Vector3.Zero()
+let cameraTarget = CENTER
+let cameraFov = 50
+let transitionFromFov = 50
+let introElapsed = 0
+let introMatchId: string | null = null
+
+function normalLens(): number {
+  const canvas = UiCanvasInformation.getOrNull(engine.RootEntity)
+  return globalDronePose((canvas?.width ?? 1920) / Math.max(1, canvas?.height ?? 1080)).fov
+}
 
 function cloneVector(value: Vector3): Vector3 {
   return Vector3.create(value.x, value.y, value.z)
@@ -51,15 +67,65 @@ function smoothstep(value: number): number {
   return clamped * clamped * (3 - 2 * clamped)
 }
 
-function currentNormalPosition(): Vector3 {
-  const point = orbitPoint(CENTER.x, CENTER.z, RADIUS, HEIGHT, angleRadians)
-  return Vector3.create(point.x, point.y, point.z)
+function currentNormalPose() {
+  const canvas = UiCanvasInformation.getOrNull(engine.RootEntity)
+  const aspect = (canvas?.width ?? 1920) / Math.max(1, canvas?.height ?? 1080)
+  const state = getUiState()
+  const player = state.localSeatId === null ? undefined : state.arena?.players[state.localSeatId]
+  // Consume the same numerical pose just written by actors, including the owner's
+  // invisible silhouette. No second smoothing stage or renderer feedback lag.
+  const pose = player ? (getRenderedSeatPose(state.localSeatId!) ?? player) : null
+  return pose ? trackedDronePose(pose, aspect) : globalDronePose(aspect)
 }
 
-function setCameraPose(position: Vector3, target: Vector3): void {
-  if (cameraEntity === null || targetEntity === null) return
+function currentNormalPosition(): Vector3 {
+  const pose = currentNormalPose()
+  return Vector3.create(pose.position.x, pose.position.y, pose.position.z)
+}
+
+function currentNormalTarget(): Vector3 {
+  const target = currentNormalPose().target
+  return Vector3.create(target.x, target.y, target.z)
+}
+
+function setCameraPose(position: Vector3, target: Vector3, fov = normalLens()): void {
+  if (cameraEntity === null) return
+  cameraPosition = cloneVector(position)
+  cameraTarget = cloneVector(target)
   Transform.getMutable(cameraEntity).position = position
-  Transform.getMutable(targetEntity).position = target
+  // Position and rotation travel in the SAME component update. A separate moving
+  // lookAtEntity can lag behind the camera in the renderer while turning.
+  Transform.getMutable(cameraEntity).rotation = Quaternion.fromLookAt(position, target)
+  cameraFov = fov
+  if (VirtualCamera.getOrNull(cameraEntity)?.fov !== fov) VirtualCamera.getMutable(cameraEntity).fov = fov
+}
+
+/** Reveal the assigned suit before the tracked drone view, never during a live fuse. */
+function updateIntroCamera(dt: number): boolean {
+  const state = getUiState()
+  if (state.localSeatId === null || (state.phase !== 'COUNTDOWN' && state.phase !== 'ROUND_START')) return false
+  if (introMatchId !== state.matchId || state.phase === 'COUNTDOWN') {
+    introMatchId = state.matchId
+    introElapsed = 0
+  }
+  if (state.phase === 'ROUND_START')
+    introElapsed = Math.max(introElapsed + Math.max(0, dt), state.crewIntroElapsedSeconds ?? 0)
+  const amount = smoothstep((introElapsed - INTRO_HOLD_SECONDS) / INTRO_ZOOM_SECONDS)
+  const astronaut = getSeatWorldPosition(state.localSeatId)
+  const yaw = state.arena?.players[state.localSeatId]?.yaw ?? 0
+  // Front/three-quarter view inside the seat ring, not behind the room's walls.
+  const position = Vector3.create(
+    astronaut.x + Math.sin(yaw) * 1.6 + Math.cos(yaw) * 0.8,
+    astronaut.y + 1.9,
+    astronaut.z + Math.cos(yaw) * 1.6 - Math.sin(yaw) * 0.8
+  )
+  const target = Vector3.create(astronaut.x, astronaut.y + 0.95, astronaut.z)
+  setCameraPose(
+    mix(position, currentNormalPosition(), amount),
+    mix(target, currentNormalTarget(), amount),
+    50 + (normalLens() - 50) * amount
+  )
+  return true
 }
 
 function takeoverPose(seatId: SeatId): { position: Vector3; target: Vector3 } {
@@ -69,8 +135,9 @@ function takeoverPose(seatId: SeatId): { position: Vector3; target: Vector3 } {
   const length = Math.max(0.001, Math.hypot(radialX, radialZ))
   const outwardX = radialX / length
   const outwardZ = radialZ / length
-  const tangentX = outwardZ
-  const tangentZ = -outwardX
+  const runner = getUiState().arena?.players[seatId]
+  const tangentX = runner ? Math.cos(runner.yaw) : outwardZ
+  const tangentZ = runner ? -Math.sin(runner.yaw) : -outwardX
 
   return {
     position: Vector3.create(
@@ -83,11 +150,13 @@ function takeoverPose(seatId: SeatId): { position: Vector3; target: Vector3 } {
 }
 
 function beginTakeover(seatId: SeatId, isLocalVictim: boolean): void {
-  if (cameraEntity === null || targetEntity === null) return
+  if (cameraEntity === null) return
   const pose = takeoverPose(seatId)
   normalPosition = currentNormalPosition()
-  transitionFromPosition = cloneVector(Transform.get(cameraEntity).position)
-  transitionFromTarget = cloneVector(Transform.get(targetEntity).position)
+  normalTarget = currentNormalTarget()
+  transitionFromPosition = cloneVector(cameraPosition)
+  transitionFromTarget = cloneVector(cameraTarget)
+  transitionFromFov = cameraFov
   takeoverPosition = pose.position
   takeoverTarget = pose.target
   takeoverElapsed = 0
@@ -97,16 +166,18 @@ function beginTakeover(seatId: SeatId, isLocalVictim: boolean): void {
 }
 
 function beginReturn(): void {
-  if (cameraEntity === null || targetEntity === null || mode === 'RETURNING' || mode === 'LOCKED_HOME') return
-  transitionFromPosition = cloneVector(Transform.get(cameraEntity).position)
-  transitionFromTarget = cloneVector(Transform.get(targetEntity).position)
+  if (cameraEntity === null || mode === 'RETURNING' || mode === 'LOCKED_HOME') return
+  transitionFromPosition = cloneVector(cameraPosition)
+  transitionFromTarget = cloneVector(cameraTarget)
+  transitionFromFov = cameraFov
   normalPosition = currentNormalPosition()
+  normalTarget = currentNormalTarget()
   transitionElapsed = 0
   mode = 'RETURNING'
 }
 
 function updateTakeoverCamera(deltaSeconds: number): boolean {
-  if (cameraEntity === null || targetEntity === null) return false
+  if (cameraEntity === null) return false
   const state = getUiState()
   const inTakeover = state.phase === 'TAKEOVER' && state.takeoverVictimSeatId !== null
 
@@ -131,7 +202,8 @@ function updateTakeoverCamera(deltaSeconds: number): boolean {
     const amount = smoothstep(transitionElapsed / TAKEOVER_ENTER_SECONDS)
     setCameraPose(
       mix(transitionFromPosition, takeoverPosition, amount),
-      mix(transitionFromTarget, takeoverTarget, amount)
+      mix(transitionFromTarget, takeoverTarget, amount),
+      transitionFromFov + (50 - transitionFromFov) * amount
     )
     if (amount >= 1) mode = 'HOLDING'
     return true
@@ -147,7 +219,8 @@ function updateTakeoverCamera(deltaSeconds: number): boolean {
       : Vector3.Zero()
     setCameraPose(
       Vector3.create(takeoverPosition.x + shake.x, takeoverPosition.y + shake.y, takeoverPosition.z + shake.z),
-      takeoverTarget
+      takeoverTarget,
+      50
     )
     return true
   }
@@ -155,48 +228,42 @@ function updateTakeoverCamera(deltaSeconds: number): boolean {
   if (mode === 'RETURNING') {
     transitionElapsed += Math.max(0, deltaSeconds)
     const amount = smoothstep(transitionElapsed / TAKEOVER_RETURN_SECONDS)
-    setCameraPose(mix(transitionFromPosition, normalPosition, amount), mix(transitionFromTarget, CENTER, amount))
+    setCameraPose(
+      mix(transitionFromPosition, normalPosition, amount),
+      mix(transitionFromTarget, normalTarget, amount),
+      transitionFromFov + (normalLens() - transitionFromFov) * amount
+    )
     if (amount >= 1) mode = inTakeover ? 'LOCKED_HOME' : 'ORBIT'
     return true
   }
 
-  setCameraPose(normalPosition, CENTER)
+  setCameraPose(normalPosition, normalTarget)
   return true
 }
 
 export function setupOrbitCamera() {
-  const mobile = isMobile()
-
-  targetEntity = engine.addEntity()
-  Transform.create(targetEntity, { position: CENTER })
+  PrimaryPointerInfo.getOrCreateMutable(engine.RootEntity)
 
   cameraEntity = engine.addEntity()
   normalPosition = currentNormalPosition()
   Transform.create(cameraEntity, { position: normalPosition })
   VirtualCamera.create(cameraEntity, {
-    lookAtEntity: targetEntity,
-    fov: 50,
+    fov: normalLens(),
     defaultTransition: { transitionMode: VirtualCamera.Transition.Time(0) }
   })
 
-  engine.addSystem((deltaSeconds) => {
-    if (!active || cameraEntity === null) return
-    if (updateTakeoverCamera(deltaSeconds)) return
-
-    // Desktop only consumes mouse movement while the Explorer cursor is locked. On mobile,
-    // PrimaryPointerInfo receives the active screen swipe directly. Vertical movement is
-    // intentionally ignored: the arena keeps its fixed height and viewing angle.
-    const cursorLocked = PointerLock.getOrNull(engine.CameraEntity)?.isPointerLocked ?? false
-    if (!mobile && !cursorLocked) return
-
-    const deltaX = PrimaryPointerInfo.getOrNull(engine.RootEntity)?.screenDelta?.x ?? 0
-    if (deltaX === 0) return
-
-    const limitedDelta = Math.min(Math.max(deltaX, -MAX_SCREEN_DELTA_PER_FRAME), MAX_SCREEN_DELTA_PER_FRAME)
-    angleRadians -= limitedDelta * RADIANS_PER_SCREEN_PIXEL
-    normalPosition = currentNormalPosition()
-    setCameraPose(normalPosition, CENTER)
-  })
+  engine.addSystem(
+    (deltaSeconds) => {
+      if (!active || cameraEntity === null) return
+      if (getUiState().arena && PointerLock.getOrNull(engine.CameraEntity)?.isPointerLocked)
+        PointerLock.getMutable(engine.CameraEntity).isPointerLocked = false
+      if (updateIntroCamera(deltaSeconds)) return
+      if (updateTakeoverCamera(deltaSeconds)) return
+      setCameraPose(currentNormalPosition(), currentNormalTarget())
+    },
+    90_000,
+    'alienzone-drone-camera-after-actors'
+  )
 }
 
 export function setOrbitCameraActive(nextActive: boolean) {
@@ -204,12 +271,16 @@ export function setOrbitCameraActive(nextActive: boolean) {
   active = nextActive
   if (nextActive) {
     normalPosition = currentNormalPosition()
-    setCameraPose(normalPosition, CENTER)
+    normalTarget = currentNormalTarget()
+    setCameraPose(normalPosition, normalTarget)
+    updateIntroCamera(0)
   } else {
     mode = 'ORBIT'
     wasTakeover = false
     takeoverElapsed = 0
     localVictim = false
+    introElapsed = 0
+    introMatchId = null
   }
   MainCamera.createOrReplace(engine.CameraEntity, {
     virtualCameraEntity: nextActive ? cameraEntity : undefined

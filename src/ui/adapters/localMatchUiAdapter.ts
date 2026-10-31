@@ -1,8 +1,11 @@
 import { cardCategory, type SeatId } from '../../game/model/types'
 import type { MatchSnapshot } from '../../game/runtime/matchEngine'
 import { CARD_DETAILS } from '../../game/rules/deck'
+import { CHASE_CARD_DETAILS, isChaseCard } from '../../game/rules/chaseCards'
 import { getUiState, updateUiState, type ThreatLevel, type UiAlienView, type UiSeatNotice } from '../state/uiState'
 import { mergeSeatReactions } from './reactionPresentation'
+import { reconcileTapFeedback } from '../state/containmentFeedback'
+import { GAME_CONFIG } from '../../config/gameConfig'
 
 function threatForFuse(seconds: number): ThreatLevel {
   if (seconds <= 5) return 'CRITICAL'
@@ -12,6 +15,11 @@ function threatForFuse(seconds: number): ThreatLevel {
 
 export function syncMatchStateToUi(state: Readonly<MatchSnapshot>) {
   const previousUi = getUiState()
+  if (
+    state.matchId === previousUi.matchId &&
+    (state.now < previousUi.snapshotServerNow || state.revision < previousUi.snapshotRevision)
+  )
+    return
   const localSeat = state.localSeatId === null ? undefined : state.seats[state.localSeatId]
   const aliens: UiAlienView[] = state.aliens.map((alien) => ({
     id: alien.id,
@@ -40,8 +48,22 @@ export function syncMatchStateToUi(state: Readonly<MatchSnapshot>) {
       if (event.kind === 'TAKEOVER' && event.heat < 0) {
         return [{ sequence: event.sequence, seatId, text: `${event.heat}`, tone: 'PENALTY' as const }]
       }
-      if (event.kind === 'REACTION_RESOLVED' && event.heat > 0) {
-        return [{ sequence: event.sequence, seatId, text: `+${event.heat}`, tone: 'POINTS' as const }]
+      if (
+        (event.kind === 'REACTION_RESOLVED' ||
+          event.kind === 'CONTAINMENT' ||
+          event.kind === 'COIN' ||
+          event.kind === 'CARD') &&
+        event.heat > 0
+      ) {
+        return [
+          {
+            sequence: event.sequence,
+            seatId,
+            text: `+${event.heat}`,
+            tone: 'POINTS' as const,
+            source: event.kind === 'COIN' ? 'COIN' : undefined
+          }
+        ]
       }
       return []
     })
@@ -60,6 +82,7 @@ export function syncMatchStateToUi(state: Readonly<MatchSnapshot>) {
   )
 
   updateUiState({
+    arena: state.arena ?? null,
     matchId: state.matchId,
     phase: state.phase,
     round: state.round,
@@ -71,7 +94,11 @@ export function syncMatchStateToUi(state: Readonly<MatchSnapshot>) {
     preciseFuseHidden: (localSeat?.hiddenUntil ?? 0) > state.now,
     holderName: aliens.map((alien) => `${alien.id === 'ECHO' ? 'ECHO' : 'ALIEN'}: ${alien.holderName}`).join('  •  '),
     isLocalHolder: heldAlien !== null && state.phase === 'HOLDING',
-    canLocalPass: heldAlien !== null && !heldAlien.inTransit && state.phase === 'HOLDING',
+    canLocalPass:
+      heldAlien !== null &&
+      !heldAlien.inTransit &&
+      state.phase === 'HOLDING' &&
+      (!state.arena || !!state.arena.throwReady),
     heldAlien,
     aliens,
     seatReactions: serverReactions,
@@ -84,14 +111,17 @@ export function syncMatchStateToUi(state: Readonly<MatchSnapshot>) {
         type: event.cardType!,
         playerName: state.seats[event.path[0]].displayName
       })),
+    cardReadyAt: localSeat?.interventionReadyAt ?? 0,
     passPending: passStillPending,
     cards: state.localHand.map((card) => ({
       id: card.id,
+      tier: state.arena && isChaseCard(card.type) ? CHASE_CARD_DETAILS[card.type].rarity : undefined,
       type: card.type,
       category: cardCategory(card.type),
-      name: CARD_DETAILS[card.type].name,
-      icon: CARD_DETAILS[card.type].icon,
-      description: CARD_DETAILS[card.type].description,
+      name: (state.arena && isChaseCard(card.type) ? CHASE_CARD_DETAILS[card.type] : CARD_DETAILS[card.type]).name,
+      icon: (state.arena && isChaseCard(card.type) ? CHASE_CARD_DETAILS[card.type] : CARD_DETAILS[card.type]).icon,
+      description: (state.arena && isChaseCard(card.type) ? CHASE_CARD_DETAILS[card.type] : CARD_DETAILS[card.type])
+        .description,
       state: card.state,
       targetSeatId: card.targetSeatId
     })),
@@ -110,6 +140,28 @@ export function syncMatchStateToUi(state: Readonly<MatchSnapshot>) {
     announcement: lastActionError ?? state.announcement,
     takeoverVictim: state.takeoverVictimSeatId === null ? null : state.seats[state.takeoverVictimSeatId].displayName,
     takeoverVictimSeatId: state.takeoverVictimSeatId,
+    containment: state.containment ?? null,
+    containmentTapFeedback:
+      state.phase === 'TAKEOVER'
+        ? reconcileTapFeedback(previousUi.containmentTapFeedback, state.containment ?? null, Date.now())
+        : null,
+    containmentPendingTarget:
+      state.phase === 'TAKEOVER' &&
+      state.matchId === previousUi.matchId &&
+      state.containment?.id === previousUi.containment?.id &&
+      !state.containment?.resolved &&
+      previousUi.containmentPendingTarget !== null &&
+      !state.containment?.hits[previousUi.containmentPendingTarget]
+        ? previousUi.containmentPendingTarget
+        : null,
+    snapshotServerNow: state.now,
+    crewIntroElapsedSeconds:
+      state.phase === 'ROUND_START'
+        ? Math.max(0, GAME_CONFIG.crewSeatingSequenceSeconds - (state.phaseEndsAt - state.now))
+        : 0,
+    snapshotRevision: state.revision,
+    fuseRemainingSeconds: state.fuseRemainingSeconds,
+    snapshotReceivedAtMs: Date.now(),
     lobbyCountdown:
       state.countdownRemainingSeconds === null ? null : Math.max(1, Math.ceil(state.countdownRemainingSeconds)),
     lastActionError

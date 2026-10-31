@@ -3,11 +3,13 @@ import ReactEcs, { ScreenInsetArea, UiEntity } from '@dcl/sdk/react-ecs'
 
 import { UI_CONFIG } from '../config/uiConfig'
 import { TakeoverFeedback } from './components/TakeoverFeedback'
+import { ContainmentChallenge } from './components/ContainmentChallenge'
 import { PowerAnnouncement } from './components/PowerAnnouncement'
 import { UiLabControls } from './debug/UiLabControls'
 import { LobbyScreen } from './screens/LobbyScreen'
 import { MatchHud } from './screens/MatchHud'
 import { ResultsScreen } from './screens/ResultsScreen'
+import { DeckSetupScreen } from './screens/DeckSetupScreen'
 import { getUiState } from './state/uiState'
 import { UI_COLORS } from './theme/tokens'
 
@@ -63,7 +65,9 @@ export function AlienzoneUiRoot() {
       <ScreenInsetArea>
         <LobbyScreen />
         <MatchHud />
+        <DeckSetupScreen />
         <PowerAnnouncement />
+        {phase === 'TAKEOVER' ? <ContainmentChallenge /> : null}
         {UI_CONFIG.showUiLabOnBoot ? <UiLabControls /> : null}
         <ResultsScreen />
       </ScreenInsetArea>

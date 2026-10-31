@@ -1,10 +1,14 @@
 import type { CardCategory, SeatId } from '../../game/model/types'
-import ReactEcs, { Button, Label, UiEntity } from '@dcl/sdk/react-ecs'
+import ReactEcs, { Label, UiEntity } from '@dcl/sdk/react-ecs'
 import { playUiSound } from '../../presentation/audioDirector'
 
 import type { UiCardView, UiSeatView } from '../state/uiState'
-import { UI_COLORS, UI_SPACING, UI_TYPE } from '../theme/tokens'
-import { CardTile } from './CardTile'
+import { UI_COLORS } from '../theme/tokens'
+import { CardTile, cardTileSize } from './CardTile'
+import { SciFiSurface } from './SciFiSurface'
+import { entranceMotion, UI_MOTION } from '../state/uiMotion'
+import { ActionButton } from './ActionButton'
+import { getControlMotion, pressControl, setControlHovered } from '../state/interactionState'
 
 interface CardHandProps {
   cards: readonly UiCardView[]
@@ -32,32 +36,58 @@ function EmptySlot({
   disabled: boolean
   onPress: () => void
 }) {
+  const controlId = `empty-slot:${title}`
+  const motion = getControlMotion(controlId, disabled)
   return (
     <UiEntity
       uiTransform={{
-        width: compact ? 94 : 118,
-        height: compact ? 82 : 98,
+        width: cardTileSize(compact).width,
+        height: cardTileSize(compact).height,
+        flexShrink: 0,
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        borderWidth: 2,
-        borderColor: disabled ? UI_COLORS.disabled : UI_COLORS.space700,
-        pointerFilter: 'block',
-        opacity: disabled ? 0.58 : 1
+        pointerFilter: 'block'
       }}
-      uiBackground={{ color: UI_COLORS.space950 }}
       onMouseDown={
         disabled
           ? undefined
           : () => {
+              pressControl(controlId)
               playUiSound('menu')
               onPress()
             }
       }
+      onMouseEnter={
+        disabled
+          ? undefined
+          : () => {
+              setControlHovered(controlId, true)
+              playUiSound('highlight')
+            }
+      }
+      onMouseLeave={disabled ? undefined : () => setControlHovered(controlId, false)}
     >
-      <Label value={title} fontSize={compact ? 9 : 11} color={UI_COLORS.textMuted} textAlign="middle-center" />
-      <Label value="＋" fontSize={compact ? 22 : 28} color={UI_COLORS.cyanMuted} textAlign="middle-center" />
-      <Label value={hint} fontSize={8} color={UI_COLORS.textMuted} textAlign="middle-center" />
+      <SciFiSurface
+        tone={disabled ? UI_COLORS.disabled : title === 'INTERVENTION' ? UI_COLORS.violet : UI_COLORS.cyan}
+        hover={motion.hover}
+        press={motion.press}
+      />
+      <Label
+        value={title}
+        fontSize={compact ? 13 : 15}
+        color={UI_COLORS.textMuted}
+        textAlign="middle-center"
+        uiTransform={{ height: 28 }}
+      />
+      <Label value="＋" fontSize={42} color={UI_COLORS.cyan} textAlign="middle-center" uiTransform={{ height: 54 }} />
+      <Label
+        value={hint}
+        fontSize={11}
+        color={UI_COLORS.textMuted}
+        textAlign="middle-center"
+        uiTransform={{ height: 26 }}
+      />
     </UiEntity>
   )
 }
@@ -83,15 +113,19 @@ export function CardHand({
     ? cards.filter((card) => card.category === openCategory && card.state !== 'SPENT')
     : []
   const openDeck = (category: CardCategory) => {
-    playUiSound('menu')
     openCategory = openCategory === category ? null : category
   }
+  const size = cardTileSize(compact)
+  const handWidth = size.width * 2 + 12
+  const handHeight = size.height + 60
+  const popup = entranceMotion('card-picker', openCategory !== null, UI_MOTION.picker)
+  const targetPopup = entranceMotion('chaos-picker', choosingTargetCardId !== null, UI_MOTION.picker)
 
   return (
     <UiEntity
       uiTransform={{
-        width: compact ? 200 : 248,
-        height: compact ? 126 : 142,
+        width: handWidth,
+        height: handHeight,
         flexDirection: 'column',
         justifyContent: 'flex-end',
         zIndex: 40
@@ -101,20 +135,19 @@ export function CardHand({
         <UiEntity
           uiTransform={{
             positionType: 'absolute',
-            position: { right: 0, bottom: compact ? 134 : 150 },
-            width: compact ? 350 : 400,
-            padding: 12,
+            position: { right: 0, bottom: handHeight + 12 - targetPopup.offset },
+            width: compact ? 380 : 440,
+            padding: 20,
+            opacity: targetPopup.opacity,
             flexDirection: 'column',
             zIndex: 46,
-            pointerFilter: 'block',
-            borderWidth: 2,
-            borderColor: UI_COLORS.cyan
+            pointerFilter: 'block'
           }}
-          uiBackground={{ color: UI_COLORS.space950 }}
         >
+          <SciFiSurface tone={UI_COLORS.violet} />
           <Label
             value="CHAOS · CHOOSE A PLAYER"
-            fontSize={13}
+            fontSize={16}
             color={UI_COLORS.cyan}
             uiTransform={{ width: '100%', height: 30 }}
           />
@@ -122,24 +155,28 @@ export function CardHand({
             {seats
               .filter((seat) => seat.id !== localSeatId)
               .map((seat) => (
-                <Button
-                  value={seat.displayName}
-                  variant="secondary"
-                  fontSize={12}
-                  uiTransform={{ width: '48%', height: 42, margin: 2 }}
-                  onMouseDown={() => {
-                    playUiSound('press')
-                    onEquip(choosingTargetCardId!, 'INTERVENTION', seat.id)
-                    choosingTargetCardId = null
-                  }}
-                />
+                <UiEntity uiTransform={{ width: '50%', padding: 3 }}>
+                  <ActionButton
+                    label={seat.displayName}
+                    tone="secondary"
+                    width={compact ? 160 : 190}
+                    height={56}
+                    fontSize={14}
+                    interactionId={`chaos-target:${seat.id}`}
+                    onPress={() => {
+                      onEquip(choosingTargetCardId!, 'INTERVENTION', seat.id)
+                      choosingTargetCardId = null
+                    }}
+                  />
+                </UiEntity>
               ))}
           </UiEntity>
-          <Button
-            value="CANCEL"
-            variant="secondary"
-            uiTransform={{ width: '100%', height: 40 }}
-            onMouseDown={() => {
+          <ActionButton
+            label="CANCEL"
+            tone="secondary"
+            width={compact ? 340 : 400}
+            height={52}
+            onPress={() => {
               choosingTargetCardId = null
             }}
           />
@@ -148,34 +185,40 @@ export function CardHand({
         <UiEntity
           uiTransform={{
             positionType: 'absolute',
-            position: { right: 0, bottom: compact ? 134 : 150 },
-            width: Math.max(compact ? 284 : 340, categoryCards.length * (compact ? 106 : 130) + 32),
-            minHeight: compact ? 152 : 184,
-            padding: compact ? 10 : UI_SPACING.md,
+            position: { right: 0, bottom: handHeight + 12 - popup.offset },
+            width: Math.max(320, categoryCards.length * (size.width + 12) + 28),
+            minHeight: size.height + 100,
+            padding: 20,
+            opacity: popup.opacity,
             flexDirection: 'column',
-            borderWidth: 2,
-            borderColor: UI_COLORS.cyan,
             zIndex: 45,
             pointerFilter: 'block'
           }}
-          uiBackground={{ color: UI_COLORS.space950 }}
         >
-          <UiEntity uiTransform={{ width: '100%', height: 24, flexDirection: 'row', alignItems: 'center' }}>
-            <Label
-              value={`CHOOSE ${openCategory} CARD`}
-              fontSize={compact ? 10 : UI_TYPE.caption}
-              color={UI_COLORS.cyan}
-            />
+          <SciFiSurface tone={openCategory === 'INTERVENTION' ? UI_COLORS.violet : UI_COLORS.cyan} />
+          <UiEntity
+            uiTransform={{
+              width: '100%',
+              height: 52,
+              margin: { bottom: 8 },
+              flexDirection: 'row',
+              alignItems: 'center'
+            }}
+          >
+            <Label value={`CHOOSE ${openCategory} CARD`} fontSize={14} color={UI_COLORS.cyan} />
             <UiEntity uiTransform={{ flexGrow: 1 }} />
-            <UiEntity
-              uiTransform={{ pointerFilter: 'block' }}
-              onMouseDown={() => {
-                playUiSound('menu')
+            <ActionButton
+              label="CLOSE ×"
+              tone="secondary"
+              width={88}
+              height={52}
+              fontSize={13}
+              interactionId="card-picker-close"
+              sound="menu"
+              onPress={() => {
                 openCategory = null
               }}
-            >
-              <Label value="CLOSE  ×" fontSize={compact ? 10 : UI_TYPE.caption} color={UI_COLORS.white} />
-            </UiEntity>
+            />
           </UiEntity>
           <UiEntity
             uiTransform={{
@@ -189,8 +232,8 @@ export function CardHand({
             {categoryCards.map((card, index) => (
               <UiEntity
                 uiTransform={{
-                  width: compact ? 94 : 118,
-                  height: compact ? 82 : 98,
+                  width: size.width,
+                  height: size.height,
                   flexShrink: 0,
                   margin: { left: index === 0 ? 0 : 12 }
                 }}
@@ -223,26 +266,29 @@ export function CardHand({
         </UiEntity>
       ) : null}
 
-      <UiEntity uiTransform={{ width: '100%', height: 40, flexDirection: 'row', justifyContent: 'space-between' }}>
+      <UiEntity
+        uiTransform={{
+          width: '100%',
+          height: 52,
+          flexShrink: 0,
+          margin: { bottom: 8 },
+          flexDirection: 'row',
+          justifyContent: 'space-between'
+        }}
+      >
         {(['REACTION', 'INTERVENTION'] as const).map((category) => (
-          <UiEntity
-            uiTransform={{
-              width: compact ? 94 : 118,
-              height: 40,
-              justifyContent: 'center',
-              alignItems: 'center',
-              pointerFilter: 'block'
-            }}
-            uiBackground={{ color: UI_COLORS.space950 }}
-            onMouseDown={interactionDisabled ? undefined : () => openDeck(category)}
-          >
-            <Label
-              value={interactionDisabled ? 'LOCKED' : `${category} ↑`}
-              fontSize={compact ? 9 : 10}
-              color={UI_COLORS.cyan}
-              textAlign="middle-center"
-            />
-          </UiEntity>
+          <ActionButton
+            label={interactionDisabled ? 'LOCKED' : `${category} ↑`}
+            width={size.width}
+            height={52}
+            tone="secondary"
+            sound="menu"
+            accent={category === 'INTERVENTION' ? UI_COLORS.violet : UI_COLORS.cyan}
+            fontSize={compact ? 12 : 14}
+            disabled={interactionDisabled}
+            interactionId={`card-category:${category}`}
+            onPress={() => openDeck(category)}
+          />
         ))}
       </UiEntity>
       <UiEntity uiTransform={{ width: '100%', flexGrow: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -254,7 +300,7 @@ export function CardHand({
             interactionDisabled={interactionDisabled}
             passive={reaction.state === 'ACTIVE'}
             stateLabel={reaction.state === 'ACTIVE' ? 'ACTIVE' : 'LOADED'}
-            actionLabel={reaction.state === 'ACTIVE' ? 'WAITING FOR ALIEN' : 'TAP TO ACTIVATE'}
+            actionLabel={reaction.state === 'ACTIVE' ? 'POWER ACTIVE' : 'TAP TO ACTIVATE'}
             interactionId="reaction-equipped"
             onPress={() => onActivate(reaction.id)}
           />
@@ -273,6 +319,7 @@ export function CardHand({
             compact={compact}
             mini
             interactionDisabled={interactionDisabled}
+            passive={intervention.state === 'ACTIVE'}
             stateLabel={
               intervention.type === 'CHAOS'
                 ? intervention.targetSeatId === undefined
@@ -281,9 +328,11 @@ export function CardHand({
                 : 'LOADED'
             }
             actionLabel={
-              intervention.type === 'CHAOS' && intervention.targetSeatId === undefined
-                ? 'CHOOSE A PLAYER'
-                : 'TAP TO ACTIVATE'
+              intervention.state === 'ACTIVE'
+                ? 'WAITING FOR ALIEN'
+                : intervention.type === 'CHAOS' && intervention.targetSeatId === undefined
+                  ? 'CHOOSE A PLAYER'
+                  : 'TAP TO ACTIVATE'
             }
             interactionId="intervention-ready"
             onPress={() => {

@@ -2,6 +2,7 @@ import ReactEcs, { Label, UiEntity } from '@dcl/sdk/react-ecs'
 
 import type { ThreatLevel } from '../state/uiState'
 import { UI_COLORS, UI_SPACING, UI_TYPE } from '../theme/tokens'
+import { SciFiSurface } from './SciFiSurface'
 
 interface DangerMeterProps {
   level: ThreatLevel
@@ -28,12 +29,13 @@ export function DangerMeter({ level, compact = false }: DangerMeterProps) {
     <UiEntity
       uiTransform={{
         width: compact ? 184 : 238,
-        height: compact ? 50 : 62,
+        height: compact ? 70 : 80,
+        justifyContent: 'center',
         flexDirection: 'column',
         padding: { left: UI_SPACING.md, right: UI_SPACING.md, top: UI_SPACING.xs, bottom: UI_SPACING.xs }
       }}
-      uiBackground={{ color: UI_COLORS.space900 }}
     >
+      <SciFiSurface tone={activeColor} />
       <UiEntity uiTransform={{ width: '100%', height: 20, flexDirection: 'row', alignItems: 'center' }}>
         <Label
           value="DANGER"

@@ -4,6 +4,7 @@ export type MusicCue = 'LOBBY' | 'MATCH'
 
 const MATCH_MUSIC_PHASES: readonly MatchPhase[] = [
   'ROUND_START',
+  'DECK_SETUP',
   'HOLDING',
   'RESOLVING_CHAIN',
   'TAKEOVER',

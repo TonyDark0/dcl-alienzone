@@ -1,4 +1,7 @@
 import type { AlienId, CardCategory, CardState, CardType, Direction, MatchPhase, SeatId } from '../../game/model/types'
+import type { ContainmentChallenge } from '../../game/rules/containment'
+import type { ChaseArenaState } from '../../game/rules/chase'
+import type { TapFeedback } from './containmentFeedback'
 
 export type ThreatLevel = 'SAFE' | 'DANGER' | 'CRITICAL'
 export type { CardState }
@@ -17,6 +20,7 @@ export interface UiSeatView {
 }
 
 export interface UiCardView {
+  tier?: 'GENERAL' | 'EPIC' | 'RARE'
   id: string
   type: CardType
   category: CardCategory
@@ -50,6 +54,7 @@ export interface UiSeatNotice {
   seatId: SeatId
   text: string
   tone: 'POINTS' | 'CARD' | 'PENALTY'
+  source?: 'COIN'
 }
 
 export interface UiSeatPassCue {
@@ -64,6 +69,7 @@ export interface UiLeaderboardEntry {
 }
 
 export interface AlienzoneUiState {
+  arena: ChaseArenaState | null
   matchId: string
   phase: MatchPhase
   round: number
@@ -84,10 +90,19 @@ export interface AlienzoneUiState {
   powerActivations: Array<{ sequence: number; type: CardType; playerName: string }>
   passPending: boolean
   cards: UiCardView[]
+  cardReadyAt: number
   seats: UiSeatView[]
   announcement: string | null
   takeoverVictim: string | null
   takeoverVictimSeatId: SeatId | null
+  containment: ContainmentChallenge | null
+  containmentPendingTarget: number | null
+  containmentTapFeedback: TapFeedback | null
+  snapshotServerNow: number
+  snapshotRevision: number
+  fuseRemainingSeconds: number
+  snapshotReceivedAtMs: number
+  crewIntroElapsedSeconds: number
   lobbyCountdown: number | null
   leaderboard: UiLeaderboardEntry[]
   leaderboardLoading: boolean
@@ -109,6 +124,7 @@ const LAB_SEATS: UiSeatView[] = Array.from({ length: 8 }, (_, id) => ({
 
 function createLabState(): AlienzoneUiState {
   return {
+    arena: null,
     matchId: '',
     phase: 'BOOT',
     round: 0,
@@ -129,10 +145,19 @@ function createLabState(): AlienzoneUiState {
     powerActivations: [],
     passPending: false,
     cards: [],
+    cardReadyAt: 0,
     seats: LAB_SEATS,
     announcement: 'WAKING CONTAINMENT SERVER',
     takeoverVictim: null,
     takeoverVictimSeatId: null,
+    containment: null,
+    containmentPendingTarget: null,
+    containmentTapFeedback: null,
+    snapshotServerNow: 0,
+    crewIntroElapsedSeconds: 0,
+    snapshotRevision: -1,
+    fuseRemainingSeconds: 0,
+    snapshotReceivedAtMs: 0,
     lobbyCountdown: null,
     leaderboard: [],
     leaderboardLoading: true,

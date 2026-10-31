@@ -51,7 +51,9 @@ describe('astronaut skin assignment', () => {
       'AST_IDLE_STANDING',
       'AST_TAKEOVER',
       'AST_HOLD_SAFE',
-      'AST_PASS'
+      'AST_PASS',
+      'AST_RUNNING',
+      'AST_RUNNING_ALIEN'
     ]
 
     for (const assetPath of ASTRONAUT_VARIANT_PATHS) {

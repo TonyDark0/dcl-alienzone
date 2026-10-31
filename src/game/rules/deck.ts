@@ -26,6 +26,34 @@ export function dealHands(seats: number, seed: number): CardSlotState[][] {
 }
 
 export const CARD_DETAILS: Record<CardType, { name: string; icon: string; description: string }> = {
+  SHADOW: {
+    name: 'SHADOW',
+    icon: 'assets/Images/ui/cards/az_card_hidden_watch_v001.png',
+    description: 'Create a moving decoy for 5 seconds. A throw at it destroys it and awards its owner +1.'
+  },
+  SYMBIOSIS: {
+    name: 'SYMBIOSIS',
+    icon: 'assets/Images/ui/cards/az_card_reverse_v001.png',
+    description: 'Launch your alien straight ahead up to 5m. A miss consumes the card but keeps the alien.'
+  },
+  VACUNE: {
+    name: 'VACUNE',
+    icon: 'assets/Images/ui/cards/az_card_skip_v001.png',
+    description:
+      'For this round: resist Freeze and Echo, reveal Invisible and identify Shadow decoys. Not immune to the original alien.'
+  },
+  TURBO: {
+    name: 'TURBO',
+    // Reuse retired Reverse arrow artwork until a dedicated Turbo icon is approved.
+    icon: 'assets/Images/ui/cards/az_card_reverse_v001.png',
+    description: 'Move and animate at 150% speed for 5 seconds.'
+  },
+  INVISIBLE: {
+    name: 'INVISIBLE',
+    // Temporary existing artwork, not a newly authored invisibility icon.
+    icon: 'assets/Images/ui/cards/az_card_hidden_watch_v001.png',
+    description: 'Disappear from other players for 10 seconds. You can still be tagged by touch.'
+  },
   REVERSE: {
     name: 'REVERSE',
     icon: 'assets/Images/ui/cards/az_card_reverse_v001.png',

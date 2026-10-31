@@ -16,13 +16,14 @@ Before changing gameplay or assets, read in this order:
 
 ## Binding constraints
 
-- Keep the approved four-parcel 2×2 layout. Any expansion requires confirmation.
+- Keep the approved six-parcel 3×2 layout (48×32m), with the owner-revised 30×15m movement area centered at (16,16). Further parcel changes require confirmation.
 - Do not download, replace or generate external assets without approval.
 - The Decentraland `auth-server` multiplayer server is approved. Do not replace it with external infrastructure.
 - VAT is outside the MVP. Use GLB skeletal clips and `Animator`.
 - Do not deploy, publish a remote repository or submit transactions without an explicit request.
 - Never invent the World DCL NAME. Request the exact name before the first deployment.
 - Do not add cards, currencies, NFTs, progression or other out-of-scope features.
+- Round coins are approved score pickups only: exactly 10 per round, +1 once per coin, no respawn, no wallet/shop currency.
 
 ## Minimum quality gate
 

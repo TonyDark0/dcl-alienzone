@@ -3,6 +3,7 @@ import ReactEcs, { Label, UiEntity } from '@dcl/sdk/react-ecs'
 import type { UiLeaderboardEntry } from '../state/uiState'
 import { UI_COLORS, UI_SPACING, UI_TYPE } from '../theme/tokens'
 import { Panel } from './Panel'
+import { SciFiSurface } from './SciFiSurface'
 
 interface LeaderboardPanelProps {
   entries: UiLeaderboardEntry[]
@@ -72,27 +73,28 @@ export function LeaderboardPanel({ entries, loading, compact, expanded = false }
           />
         </UiEntity>
       ) : (
-        <UiEntity uiTransform={{ width: '100%', flexGrow: 1, flexDirection: 'column' }}>
+        <UiEntity
+          uiTransform={{ width: '100%', flexGrow: 1, minHeight: 0, overflow: 'scroll', flexDirection: 'column' }}
+        >
           {rankedEntries.map((entry, index) => {
             const leading = index === 0
             return (
               <UiEntity
                 uiTransform={{
                   width: '100%',
-                  height: compact ? 40 : 46,
+                  height: compact ? 52 : 56,
+                  flexShrink: 0,
                   padding: { left: UI_SPACING.sm, right: UI_SPACING.sm },
                   margin: { bottom: 4 },
                   flexDirection: 'row',
-                  alignItems: 'center',
-                  borderWidth: { left: leading ? 5 : 2 },
-                  borderColor: leading ? UI_COLORS.alien : UI_COLORS.space700
+                  alignItems: 'center'
                 }}
-                uiBackground={{ color: leading ? UI_COLORS.alienMuted : UI_COLORS.space800Glass }}
               >
+                <SciFiSurface tone={leading ? UI_COLORS.warning : UI_COLORS.space700} />
                 <Label
                   value={`${index + 1}`}
                   fontSize={compact ? UI_TYPE.body : UI_TYPE.strong}
-                  color={leading ? UI_COLORS.alien : UI_COLORS.textMuted}
+                  color={leading ? UI_COLORS.warning : UI_COLORS.textMuted}
                 />
                 <Label
                   value={entry.displayName}

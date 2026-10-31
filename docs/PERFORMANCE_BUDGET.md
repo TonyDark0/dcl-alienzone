@@ -8,6 +8,9 @@
 - Astronaut: up to 3,000 triangles each, 24,000 for eight.
 - Seats: one reusable instanced GLB, minimized after visual approval.
 - Avoid decorative geometry that does not improve gameplay readability.
+- Round coins: ten shared-source GLB instances, 26 triangles each (260 total), with at most twenty runtime entities including pivot roots. No per-coin unique materials, textures or physics colliders.
+- Shadow reuses its owner's 3,416-triangle GLB, with at most eight temporary clones (27,328 extra triangles) and no physics colliders. Inspected GLB-only worst case: 16 astronauts × 3,416 + eight chairs × 166 + environment 1,142 + coins 260 = **57,386 triangles**, before name/marker/primitive geometry. This approaches six parcels' 60,000 guidance. Native mobile frame pacing and the final alien/VFX budget need review; no automatic GLB reduction or parcel expansion is approved.
+- Rare board pickups and Symbiosis flight use existing-icon billboard quads, not additional 3D assets. Clone records and render entities expire at takeover/menu cleanup; natural exit blinks/fades during the existing five-second life.
 
 ## Materials and textures
 
@@ -18,6 +21,8 @@ Strict authored material set for future exports:
 - `MAT_AZ_ATLAS_EMISSIVE`
 
 Use one shared color atlas. Avoid large alpha surfaces, custom shaders, per-player materials and runtime texture overrides.
+
+Approved exception: temporary Freeze/Invisible whole-model material overrides reuse this same atlas with no new texture or geometry. Cache stable states and quantize parameter changes during 0.2s transitions. Only the owner needs a visible alpha-blended astronaut; remote invisible proxies remain hidden with shadows disabled. Delete overrides on expiry/takeover/cleanup. Native mobile transparency/draw-cost checks are still required.
 
 ## Animation
 
@@ -30,7 +35,8 @@ Use one shared color atlas. Avoid large alpha surfaces, custom shaders, per-play
 
 ## Runtime
 
-- Authoritative snapshots at 5 Hz.
+- Authoritative snapshots at 10 Hz; unchanged movement intents refresh at 10 Hz and direction/start/stop edges send immediately.
+- Open-room bot plans update at 4 Hz, using at most 16 candidate escape directions per bot; every role uses the same movement integrator and speed.
 - No per-frame networked transforms.
 - UI derives from compact snapshots.
 - Inactive lobby does not create gameplay actors until countdown.

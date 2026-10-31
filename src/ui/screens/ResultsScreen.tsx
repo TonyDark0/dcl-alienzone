@@ -6,6 +6,8 @@ import { requestRematch, requestReturnToLobby } from '../../client/gameClient'
 import { Panel } from '../components/Panel'
 import { getUiState } from '../state/uiState'
 import { UI_COLORS, UI_SPACING, UI_TYPE } from '../theme/tokens'
+import { entranceMotion } from '../state/uiMotion'
+import { SciFiSurface } from '../components/SciFiSurface'
 
 export function ResultsScreen() {
   const state = getUiState()
@@ -18,6 +20,7 @@ export function ResultsScreen() {
   const rankedSeats = ranking.slice(0, 4)
   if (localResult && localResult.rank > 4) rankedSeats[3] = localResult
   const visible = state.phase === 'MATCH_RESULT'
+  const motion = entranceMotion('results-screen', visible)
 
   return (
     <UiEntity
@@ -41,6 +44,8 @@ export function ResultsScreen() {
           maxWidth: 720,
           height: compact ? '88%' : '72%',
           maxHeight: 620,
+          opacity: motion.opacity,
+          position: { top: motion.offset },
           padding: compact ? UI_SPACING.lg : UI_SPACING.xl,
           flexDirection: 'column'
         }}
@@ -66,7 +71,7 @@ export function ResultsScreen() {
             }}
           />
           <Label
-            value="RANKING"
+            value="<b>RANKING</b>"
             fontSize={compact ? UI_TYPE.title : UI_TYPE.display}
             color={UI_COLORS.white}
             textAlign="middle-center"
@@ -91,16 +96,14 @@ export function ResultsScreen() {
                 padding: { left: UI_SPACING.md, right: UI_SPACING.md },
                 margin: { bottom: UI_SPACING.sm },
                 flexDirection: 'row',
-                alignItems: 'center',
-                borderWidth: { left: index === 0 ? 6 : 2 },
-                borderColor: index === 0 ? UI_COLORS.alien : UI_COLORS.space700
+                alignItems: 'center'
               }}
-              uiBackground={{ color: index === 0 ? UI_COLORS.alienMuted : UI_COLORS.space800 }}
             >
+              <SciFiSurface tone={index === 0 ? UI_COLORS.warning : UI_COLORS.space700} />
               <Label
                 value={`${rank}`.padStart(2, '0')}
                 fontSize={UI_TYPE.title}
-                color={index === 0 ? UI_COLORS.alien : UI_COLORS.textMuted}
+                color={index === 0 ? UI_COLORS.warning : UI_COLORS.textMuted}
               />
               <Label
                 value={seat.name}

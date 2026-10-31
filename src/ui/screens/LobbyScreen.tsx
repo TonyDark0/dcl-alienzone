@@ -1,30 +1,34 @@
 import { engine, UiCanvasInformation } from '@dcl/sdk/ecs'
-import ReactEcs, { Button, Label, UiEntity } from '@dcl/sdk/react-ecs'
+import ReactEcs, { Label, UiEntity } from '@dcl/sdk/react-ecs'
 
 import { requestLeaderboard, requestReady } from '../../client/gameClient'
-import { playUiSound } from '../../presentation/audioDirector'
-import { PLAYABLE_CARD_TYPES } from '../../game/model/types'
-import { CARD_DETAILS } from '../../game/rules/deck'
+import { CHASE_CARD_TYPES, CHASE_CARD_DETAILS } from '../../game/rules/chaseCards'
 import { ActionButton } from '../components/ActionButton'
 import { LeaderboardPanel } from '../components/LeaderboardPanel'
 import { Panel } from '../components/Panel'
 import { getUiState } from '../state/uiState'
 import { UI_COLORS, UI_SPACING, UI_TYPE } from '../theme/tokens'
+import { createMenuMotion, stepMenuMotion, type MenuMotionState } from '../state/uiMotion'
+import { SciFiSurface } from '../components/SciFiSurface'
+import { MatchLoadoutEditor } from '../components/MatchLoadoutEditor'
 
-type LobbyPage = 'HOME' | 'INSTRUCTIONS' | 'LEADERBOARD'
+type LobbyPage = 'HOME' | 'INSTRUCTIONS' | 'LEADERBOARD' | 'LOADOUT'
 
 let lobbyPage: LobbyPage = 'HOME'
+let lobbyMotion: MenuMotionState | null = null
 
 const SCORE_ROWS = [
-  ['MORE THAN 15s', '+1'],
-  ['OVER 10s TO 15s', '+2'],
-  ['OVER 5s TO 10s', '+3'],
-  ['5s OR LESS', '+4']
+  ['SUCCESSFUL NEARBY THROW', '+1'],
+  ['FIRST TO TOUCH A COIN', '+1'],
+  ['ACTIVATE A CARD / COLLECT A POWER', '+1'],
+  ['FOOL AN ATTACKER WITH SHADOW', '+1'],
+  ['NEVER HELD EITHER ALIEN IN A ROUND', '+1'],
+  ['CONTAINMENT: HIT AT LEAST 3 OF 5', '+1']
 ] as const
 
-const CARD_ROWS = PLAYABLE_CARD_TYPES.map((type) => {
-  const card = CARD_DETAILS[type]
-  return [card.icon, card.name, card.description] as const
+const CARD_ROWS = CHASE_CARD_TYPES.map((type) => {
+  const card = CHASE_CARD_DETAILS[type]
+  return [card.icon, card.name, card.description, card.rarity] as const
 })
 
 function ClosedLobbyPrompt({ compact }: { compact: boolean }) {
@@ -98,8 +102,7 @@ function LobbyHome({ compact }: { compact: boolean }) {
           width={compact ? 420 : 480}
           interactionId="lobby-play"
           onPress={() => {
-            lobbyPage = 'HOME'
-            requestReady()
+            lobbyPage = 'LOADOUT'
           }}
         />
       </UiEntity>
@@ -177,7 +180,7 @@ function Instructions({ compact }: { compact: boolean }) {
           uiTransform={{ width: '100%', height: compact ? 36 : 48, flexShrink: 0 }}
         />
         <Label
-          value="HOLD. PASS. OUTSMART THE CREW."
+          value="RUN. TAG. OUTSMART THE CREW."
           fontSize={compact ? 12 : 14}
           color={UI_COLORS.textMuted}
           textAlign="middle-center"
@@ -188,27 +191,23 @@ function Instructions({ compact }: { compact: boolean }) {
         uiTransform={{ width: '100%', height: 52, flexShrink: 0, flexDirection: 'row', margin: { bottom: 16 } }}
       >
         {(['OBJECTIVE', 'SCORING', 'CARDS'] as const).map((page) => (
-          <Button
-            value={page}
-            variant={instructionPage === page ? 'primary' : 'secondary'}
-            fontSize={compact ? 14 : 17}
-            uiTransform={{
-              width: '33.33%',
-              height: 48,
-              justifyContent: 'center',
-              alignItems: 'center',
-              borderWidth: { bottom: 3 },
-              borderColor: instructionPage === page ? UI_COLORS.cyan : UI_COLORS.space700,
-              pointerFilter: 'block'
-            }}
-            onMouseDown={() => {
-              playUiSound('menu')
-              instructionPage = page
-            }}
-          />
+          <UiEntity uiTransform={{ width: '33.33%', padding: { left: 4, right: 4 } }}>
+            <ActionButton
+              label={page}
+              tone={instructionPage === page ? 'primary' : 'secondary'}
+              fontSize={compact ? 16 : 18}
+              width="100%"
+              height={48}
+              interactionId={`tutorial-tab:${page}`}
+              sound="menu"
+              onPress={() => {
+                instructionPage = page
+              }}
+            />
+          </UiEntity>
         ))}
       </UiEntity>
-      <UiEntity uiTransform={{ width: '100%', flexGrow: 1, minHeight: 0, flexDirection: 'column' }}>
+      <UiEntity uiTransform={{ width: '100%', flexGrow: 1, minHeight: 0, flexDirection: 'column', overflow: 'scroll' }}>
         {instructionPage === 'OBJECTIVE' ? (
           <UiEntity uiTransform={{ width: '100%', flexDirection: 'column' }}>
             <HelpText
@@ -222,13 +221,18 @@ function Instructions({ compact }: { compact: boolean }) {
               height={compact ? 66 : 86}
               value="Your objective is to avoid the alien's attacks and finish the 3 rounds with the most points."
             />
+            <HelpText
+              compact={compact}
+              height={compact ? 118 : 132}
+              value="Prepare three ordered decks before finding a match: three cards per round. Unused cards expire. Move with WASD or the mobile joystick; E / THROW passes to a nearby astronaut. F / the ready card activates your next power. Collect coins for +1 each: ten per round, with no replacements."
+            />
           </UiEntity>
         ) : instructionPage === 'SCORING' ? (
           <UiEntity uiTransform={{ width: '100%', flexDirection: 'column' }}>
             <HelpText
               compact={compact}
-              height={compact ? 44 : 54}
-              value="After a 2-second hold, a manual PASS awards the amount below. The shared time remaining determines your reward; holding alone does not add points."
+              height={compact ? 70 : 76}
+              value="An accepted throw, coin collection or power activation awards +1. Shadow grants one extra point if an attacker throws at the decoy. Rejected inputs and ordering cards give nothing. Holding awards nothing. Humans and bots use the same rules."
             />
             {SCORE_ROWS.map(([time, heat]) => (
               <UiEntity
@@ -247,14 +251,14 @@ function Instructions({ compact }: { compact: boolean }) {
                   value={time}
                   fontSize={compact ? 14 : 17}
                   color={UI_COLORS.white}
-                  uiTransform={{ width: '65%', height: '100%' }}
+                  uiTransform={{ width: '86%', height: '100%' }}
                   textAlign="middle-left"
                 />
                 <Label
                   value={heat}
                   fontSize={compact ? 16 : 20}
                   color={UI_COLORS.alien}
-                  uiTransform={{ width: '35%', height: '100%' }}
+                  uiTransform={{ width: '14%', height: '100%' }}
                   textAlign="middle-right"
                 />
               </UiEntity>
@@ -262,50 +266,59 @@ function Instructions({ compact }: { compact: boolean }) {
             <HelpText
               compact={compact}
               height={compact ? 40 : 50}
-              value="PASS before 2s: +0. There is no automatic pass: holding until the timer ends risks an attack. ECHO scores the same way."
+              value="A new holder has a 1-second arrival grace. You cannot return the same alien to its immediate giver for 2.5 seconds. Touching alone never passes it. Echo follows these rules too."
             />
             <HelpText
               compact={compact}
               accent
               height={compact ? 40 : 50}
-              value="SKIP: +1 when your activated card actually skips an incoming alien. Loading or activating it awards nothing."
+              value="Skip protects for 3s. Invisible hides for 10s, except from Vacune. Freeze slows others to 50% for 2s; on Turbo it cancels the boost to normal speed instead. The timer keeps running."
             />
             <HelpText
               compact={compact}
               height={compact ? 34 : 44}
-              value="TAKEOVER: −5, with a minimum of 0. Only the original alien attacks."
+              value="Only the original alien attacks. A takeover no longer subtracts points in running mode."
+            />
+            <HelpText
+              compact={compact}
+              accent
+              height={compact ? 90 : 100}
+              value="CONTAINMENT: If attacked, tap the 5 targets as they appear. Hit at least 3 to earn +1; missed targets count. The crew contains the first 2 attacks regardless of your hits. The third attack ends the match, but you can still earn the bonus."
             />
           </UiEntity>
         ) : (
           <UiEntity uiTransform={{ width: '100%', flexDirection: 'column' }}>
             <HelpText
               compact={compact}
-              height={compact ? 66 : 78}
-              value="You receive 2 reactions and 2 interventions for the match. One shared ECHO bonus goes to a random player each round. Browse to LOAD, then tap the loaded card to ACTIVATE. CHAOS requires a chosen player first."
+              height={compact ? 108 : 116}
+              value="General (green): repeat across rounds. Epic (red): each type once per match. Rare (purple): board pickups, never in decks. Prepare 3 cards per round before joining; unused cards expire. F / the ready card activates the queue head for +1. Reorder during play without pausing. Armed Chaos locks your queue until it redirects an incoming alien."
             />
-            {[0, 2, 4].map((offset) => (
+            {Array.from({ length: Math.ceil(CARD_ROWS.length / 2) }, (_, row) => row * 2).map((offset) => (
               <UiEntity
                 uiTransform={{
                   width: '100%',
-                  height: compact ? 92 : 104,
+                  height: compact ? 144 : 152,
                   flexShrink: 0,
                   margin: { bottom: 8 },
                   flexDirection: 'row',
                   justifyContent: 'space-between'
                 }}
               >
-                {CARD_ROWS.slice(offset, offset + 2).map(([icon, name, description]) => (
+                {CARD_ROWS.slice(offset, offset + 2).map(([icon, name, description, tier]) => (
                   <UiEntity
                     uiTransform={{
                       width: '49%',
                       height: '100%',
                       padding: compact ? 8 : 12,
-                      flexDirection: 'column',
-                      borderWidth: { left: 3 },
-                      borderColor: UI_COLORS.cyan
+                      flexDirection: 'column'
                     }}
-                    uiBackground={{ color: UI_COLORS.space800 }}
                   >
+                    <SciFiSurface
+                      quiet
+                      tone={
+                        tier === 'GENERAL' ? UI_COLORS.alien : tier === 'EPIC' ? UI_COLORS.danger : UI_COLORS.violet
+                      }
+                    />
                     <UiEntity
                       uiTransform={{
                         width: compact ? 30 : 36,
@@ -323,14 +336,14 @@ function Instructions({ compact }: { compact: boolean }) {
                       fontSize={compact ? 14 : 17}
                       color={UI_COLORS.white}
                       textAlign="middle-left"
-                      uiTransform={{ width: '100%', height: 24, flexShrink: 0 }}
+                      uiTransform={{ width: '78%', height: 24, flexShrink: 0 }}
                     />
                     <Label
                       value={description}
                       fontSize={compact ? 12 : 14}
                       color={UI_COLORS.textMuted}
                       textAlign="top-left"
-                      uiTransform={{ width: '100%', height: compact ? 50 : 56, flexShrink: 0 }}
+                      uiTransform={{ width: '100%', height: compact ? 102 : 108, flexShrink: 0 }}
                     />
                   </UiEntity>
                 ))}
@@ -420,10 +433,19 @@ function Countdown({ compact }: { compact: boolean }) {
 export function LobbyScreen() {
   const state = getUiState()
   const visible = state.phase === 'BOOT' || state.phase === 'LOBBY' || state.phase === 'COUNTDOWN'
-  if (!visible) return <UiEntity uiTransform={{ display: 'none', width: '100%', height: '100%' }} />
+  if (!visible) {
+    lobbyMotion = null
+    return <UiEntity uiTransform={{ display: 'none', width: '100%', height: '100%' }} />
+  }
 
   const canvas = UiCanvasInformation.getOrNull(engine.RootEntity)
   const compact = (canvas?.height ?? 720) <= 800
+  const now = Date.now()
+  if (state.phase !== 'LOBBY') lobbyMotion = null
+  else if (!lobbyMotion) lobbyMotion = createMenuMotion(lobbyPage, now)
+  const motion = lobbyMotion
+    ? stepMenuMotion(lobbyMotion, lobbyPage, now)
+    : { key: lobbyPage, opacity: 1, offset: 0, blocking: false }
 
   return (
     <UiEntity
@@ -440,17 +462,50 @@ export function LobbyScreen() {
       uiBackground={{ color: UI_COLORS.lobbyBackdrop }}
       onMouseDown={() => undefined}
     >
-      {state.phase === 'BOOT' ? (
-        <ClosedLobbyPrompt compact={compact} />
-      ) : state.phase === 'COUNTDOWN' ? (
-        <Countdown compact={compact} />
-      ) : lobbyPage === 'INSTRUCTIONS' ? (
-        <Instructions compact={compact} />
-      ) : lobbyPage === 'LEADERBOARD' ? (
-        <Leaderboard compact={compact} />
-      ) : (
-        <LobbyHome compact={compact} />
-      )}
+      <UiEntity
+        uiTransform={{
+          width: '100%',
+          height: '100%',
+          justifyContent: 'center',
+          alignItems: 'center',
+          opacity: motion.opacity,
+          position: { top: motion.offset }
+        }}
+      >
+        {state.phase === 'BOOT' ? (
+          <ClosedLobbyPrompt compact={compact} />
+        ) : state.phase === 'COUNTDOWN' ? (
+          <Countdown compact={compact} />
+        ) : motion.key === 'LOADOUT' ? (
+          <MatchLoadoutEditor
+            compact={compact}
+            onBack={() => {
+              lobbyPage = 'HOME'
+            }}
+            onConfirm={(plan) => {
+              requestReady(plan)
+            }}
+          />
+        ) : motion.key === 'INSTRUCTIONS' ? (
+          <Instructions compact={compact} />
+        ) : motion.key === 'LEADERBOARD' ? (
+          <Leaderboard compact={compact} />
+        ) : (
+          <LobbyHome compact={compact} />
+        )}
+      </UiEntity>
+      {motion.blocking ? (
+        <UiEntity
+          uiTransform={{
+            positionType: 'absolute',
+            position: { top: 0, left: 0 },
+            width: '100%',
+            height: '100%',
+            pointerFilter: 'block'
+          }}
+          onMouseDown={() => undefined}
+        />
+      ) : null}
     </UiEntity>
   )
 }

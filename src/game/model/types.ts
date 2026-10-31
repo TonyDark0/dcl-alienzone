@@ -5,6 +5,7 @@ export type MatchPhase =
   | 'LOBBY'
   | 'COUNTDOWN'
   | 'ROUND_START'
+  | 'DECK_SETUP'
   | 'HOLDING'
   | 'RESOLVING_CHAIN'
   | 'TAKEOVER'
@@ -14,13 +15,26 @@ export type MatchPhase =
 
 export type Direction = 1 | -1
 export type CardState = 'AVAILABLE' | 'ARMED' | 'ACTIVE' | 'SPENT'
-export const PLAYABLE_CARD_TYPES = ['REVERSE', 'SKIP', 'CHAOS', 'HIDDEN_WATCH', 'FREEZE', 'DUPLICATE'] as const
+// REVERSE remains readable only for the archived seated-rules tests.
+export const PLAYABLE_CARD_TYPES = [
+  'REVERSE',
+  'SKIP',
+  'CHAOS',
+  'HIDDEN_WATCH',
+  'FREEZE',
+  'DUPLICATE',
+  'INVISIBLE',
+  'TURBO',
+  'SHADOW',
+  'SYMBIOSIS',
+  'VACUNE'
+] as const
 export type CardType = (typeof PLAYABLE_CARD_TYPES)[number]
 export type CardCategory = 'REACTION' | 'INTERVENTION'
 export type AlienId = 'ORIGINAL' | 'ECHO'
 
 export function cardCategory(type: CardType): CardCategory {
-  return type === 'REVERSE' || type === 'SKIP' ? 'REACTION' : 'INTERVENTION'
+  return type === 'REVERSE' || type === 'SKIP' || type === 'INVISIBLE' ? 'REACTION' : 'INTERVENTION'
 }
 
 export interface CardSlotState {

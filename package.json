@@ -1,7 +1,7 @@
 {
   "name": "dcl-alienzone",
   "version": "1.0.0",
-  "description": "DCL Alienzone — a social push-your-luck game for Decentraland SDK7.",
+  "description": "DCL Alienzone — a social running-tag game for Decentraland SDK7.",
   "private": false,
   "scripts": {
     "start": "sdk-commands start",

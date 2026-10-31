@@ -5,6 +5,7 @@ import { setMusicCueForPhase, setupAudioDirector } from '../presentation/audioDi
 import { setupUi } from '../ui'
 import { getUiState } from '../ui/state/uiState'
 import { setupGameClient } from './gameClient'
+import { setupChaseControls } from './chaseControls'
 import { setupOrbitCamera } from './orbitCamera'
 import { setupSceneLifecycle, updateSceneLifecycle } from './sceneLifecycle'
 
@@ -15,6 +16,7 @@ export function setupClient() {
   setupOrbitCamera()
   setupAudioDirector()
   setupGameClient()
+  setupChaseControls()
   setupUi()
 
   engine.addSystem((deltaSeconds) => {

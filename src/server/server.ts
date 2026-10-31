@@ -3,7 +3,9 @@ import { syncEntity } from '@dcl/sdk/network'
 import { AUTH_SERVER_PEER_ID } from '@dcl/sdk/network/message-bus-sync'
 
 import type { AlienId, CardCategory, SeatId } from '../game/model/types'
-import { MatchEngine, type ActionResult } from '../game/runtime/matchEngine'
+import { type ActionResult } from '../game/runtime/matchEngine'
+import { ChaseMatchEngine } from '../game/runtime/chaseMatchEngine'
+import { DECK_CARD_TYPES, defaultLoadout, validateLoadout, type MatchLoadout } from '../game/rules/loadouts'
 import { room } from '../shared/messages'
 import { ServerStatus } from '../shared/schemas'
 import { ActionGate, type ActionEnvelope } from './actionGate'
@@ -11,10 +13,10 @@ import { isSeatWinner, mergeLeaderboardResult } from './leaderboard'
 import { loadLeaderboard, saveLeaderboard, type LeaderboardEntry } from './persistence'
 
 const HEARTBEAT_MS = 2_000
-const SNAPSHOT_MS = 200
+const SNAPSHOT_MS = 100
 const CLIENT_GRACE_MS = 15_000
 
-let game: MatchEngine
+let game: ChaseMatchEngine
 let matchNumber = 0
 let lastTickAt = 0
 let nextHeartbeatAt = 0
@@ -24,7 +26,7 @@ let persistedMatchId = ''
 let saveInFlight = false
 let retrySaveAt = 0
 
-const clients = new Map<string, { displayName: string; seenAt: number; playing: boolean }>()
+const clients = new Map<string, { displayName: string; seenAt: number; playing: boolean; loadout?: MatchLoadout }>()
 const actionGate = new ActionGate()
 
 function normalizeName(value: string): string {
@@ -33,10 +35,13 @@ function normalizeName(value: string): string {
 
 function createGame() {
   const seed = (Date.now() + ++matchNumber * 104729) >>> 0
-  game = new MatchEngine(seed, `alienzone-${Date.now()}-${matchNumber}`)
+  game = new ChaseMatchEngine(seed, `alienzone-${Date.now()}-${matchNumber}`, DECK_CARD_TYPES)
   actionGate.clear()
   for (const [playerId, client] of clients) {
-    if (client.playing && Date.now() - client.seenAt <= CLIENT_GRACE_MS) game.join(playerId, client.displayName)
+    if (client.playing && Date.now() - client.seenAt <= CLIENT_GRACE_MS) {
+      const seatId = game.join(playerId, client.displayName)
+      if (seatId !== null) game.configureLoadout(seatId, client.loadout ?? defaultLoadout())
+    }
   }
 }
 
@@ -137,8 +142,11 @@ export async function setupServer() {
     const playerId = context.from.toLowerCase()
     const displayName = normalizeName(data.displayName)
     const playing = clients.get(playerId)?.playing ?? false
-    clients.set(playerId, { displayName, seenAt: Date.now(), playing })
-    if (playing) game.join(playerId, displayName)
+    clients.set(playerId, { displayName, seenAt: Date.now(), playing, loadout: clients.get(playerId)?.loadout })
+    if (playing) {
+      const seatId = game.join(playerId, displayName)
+      if (seatId !== null) game.resetMovementInput(seatId)
+    }
     sendSnapshot([playerId])
     sendLeaderboard([playerId])
   })
@@ -154,6 +162,14 @@ export async function setupServer() {
 
   room.onMessage('requestReady', (data, context) => {
     if (!context) return
+    const plan = data.loadout ?? defaultLoadout()
+    if (!validateLoadout(plan)) {
+      sendActionResult(context.from.toLowerCase(), data.clientActionId, {
+        accepted: false,
+        reason: 'Invalid 3-round loadout. Pickups stay outside decks; each Epic is allowed once.'
+      })
+      return
+    }
     const client = clients.get(context.from.toLowerCase())
     if (
       client &&
@@ -162,7 +178,15 @@ export async function setupServer() {
       ['LOBBY', 'COUNTDOWN'].includes(game.state.phase)
     ) {
       const joined = game.join(context.from.toLowerCase(), client.displayName)
-      if (joined !== null) client.playing = true
+      if (joined !== null) {
+        const configured = game.configureLoadout(joined, plan)
+        if (!configured.accepted) {
+          sendActionResult(context.from.toLowerCase(), data.clientActionId, configured)
+          return
+        }
+        client.loadout = plan.map((round) => [...round]) as MatchLoadout
+        client.playing = true
+      }
     }
     runPlayerAction(context.from, data, () =>
       game.state.phase === 'COUNTDOWN' ? { accepted: true, reason: '' } : game.ready()
@@ -198,6 +222,30 @@ export async function setupServer() {
 
   room.onMessage('requestPass', (data, context) => {
     runPlayerAction(context?.from, data, (seatId) => game.pass(seatId, data.alienId as AlienId, data.turn))
+  })
+
+  room.onMessage('moveIntent', (data, context) => {
+    if (!context) return
+    advanceToNow()
+    const playerId = context.from.toLowerCase()
+    const client = clients.get(playerId)
+    if (!client?.playing || data.matchId !== game.state.matchId || data.round !== game.state.round) return
+    const seat = game.state.seats.find((candidate) => candidate.playerId === playerId && !candidate.isBot)
+    if (!seat) return
+    // Accept direction only, never a client position, distance, contact or score.
+    game.aimInput(seat.id, data.forward, data.aimYaw, data.sequence)
+    client.seenAt = Date.now()
+  })
+
+  room.onMessage('containmentTap', (data, context) => {
+    runPlayerAction(context?.from, data, (seatId) => game.containmentTap(seatId, data.challengeId, data.targetIndex))
+  })
+
+  room.onMessage('orderDeck', (data, context) => {
+    runPlayerAction(context?.from, data, (seatId) => game.orderDeck(seatId, data.cardIds))
+  })
+  room.onMessage('chooseCardTarget', (data, context) => {
+    runPlayerAction(context?.from, data, (seatId) => game.chooseCardTarget(seatId, data.cardId, data.targetSeatId))
   })
 
   room.onMessage('equipCard', (data, context) => {
@@ -244,5 +292,5 @@ export async function setupServer() {
     }
   })
 
-  console.log('[SERVER] DCL Alienzone multiplayer engine ready: independent seats, bots, cards and ECHO')
+  console.log('[SERVER] DCL Alienzone running-tag preview ready: authoritative movement, contact, bots and cards')
 }

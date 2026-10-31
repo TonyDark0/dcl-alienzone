@@ -1,14 +1,18 @@
-import ReactEcs, { Button, Label, UiEntity } from '@dcl/sdk/react-ecs'
+import ReactEcs, { Label, UiEntity } from '@dcl/sdk/react-ecs'
+import type { Color4 } from '@dcl/sdk/math'
 import { playUiSound } from '../../presentation/audioDirector'
 
-import { isControlHovered, setControlHovered } from '../state/interactionState'
+import { getControlMotion, pressControl, setControlHovered } from '../state/interactionState'
+import { SciFiSurface } from './SciFiSurface'
 import { UI_COLORS, UI_SIZE, UI_SPACING, UI_TYPE } from '../theme/tokens'
 
 interface ActionButtonProps {
   label: string
   hint?: string
   tone?: 'primary' | 'secondary' | 'danger'
-  width?: number
+  accent?: Color4
+  width?: number | `${number}%`
+  height?: number
   fontSize?: number
   disabled?: boolean
   interactionId?: string
@@ -20,7 +24,9 @@ export function ActionButton({
   label,
   hint,
   tone = 'primary',
+  accent = UI_COLORS.cyan,
   width = 300,
+  height = UI_SIZE.tapTarget,
   fontSize = UI_TYPE.strong,
   disabled = false,
   interactionId,
@@ -28,8 +34,7 @@ export function ActionButton({
   onPress
 }: ActionButtonProps) {
   const controlId = interactionId ?? `action:${label}`
-  const hovered = !disabled && isControlHovered(controlId)
-  const variant = tone === 'secondary' ? 'secondary' : 'primary'
+  const motion = getControlMotion(controlId, disabled)
   const hintColor = disabled
     ? UI_COLORS.textMuted
     : tone === 'danger'
@@ -42,28 +47,27 @@ export function ActionButton({
     <UiEntity
       uiTransform={{
         width,
-        minHeight: hint ? UI_SIZE.tapTarget + 20 : UI_SIZE.tapTarget,
+        minHeight: hint ? height + 24 : height,
+        flexShrink: 0,
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center'
       }}
     >
-      <Button
-        variant={variant}
-        value={label}
-        disabled={disabled}
-        fontSize={fontSize}
-        textAlign="middle-center"
+      <UiEntity
         uiTransform={{
           width: '100%',
-          height: UI_SIZE.tapTarget,
-          pointerFilter: 'block',
-          opacity: disabled ? 0.58 : hovered ? 0.9 : 1
+          height,
+          flexShrink: 0,
+          justifyContent: 'center',
+          alignItems: 'center',
+          pointerFilter: 'block'
         }}
         onMouseDown={
           disabled
             ? undefined
             : () => {
+                pressControl(controlId)
                 playUiSound(sound)
                 onPress()
               }
@@ -77,7 +81,21 @@ export function ActionButton({
               }
         }
         onMouseLeave={disabled ? undefined : () => setControlHovered(controlId, false)}
-      />
+      >
+        <SciFiSurface
+          primary={tone !== 'secondary' && !disabled}
+          tone={disabled ? UI_COLORS.disabled : tone === 'secondary' ? accent : UI_COLORS.white}
+          hover={motion.hover}
+          press={motion.press}
+        />
+        <Label
+          value={label}
+          fontSize={fontSize}
+          color={disabled ? UI_COLORS.textMuted : UI_COLORS.white}
+          textAlign="middle-center"
+          uiTransform={{ width: '92%', height: '100%', pointerFilter: 'none' }}
+        />
+      </UiEntity>
       {hint ? (
         <Label
           value={hint}

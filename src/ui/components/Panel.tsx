@@ -1,6 +1,7 @@
 import ReactEcs, { UiEntity, type UiTransformProps } from '@dcl/sdk/react-ecs'
 
-import { UI_COLORS, UI_SIZE, UI_SPACING } from '../theme/tokens'
+import { UI_COLORS, UI_SPACING } from '../theme/tokens'
+import { SciFiSurface } from './SciFiSurface'
 
 export type PanelVariant = 'default' | 'accent' | 'danger' | 'quiet'
 
@@ -24,12 +25,10 @@ export function Panel({ children, variant = 'default', uiTransform = {} }: Panel
     <UiEntity
       uiTransform={{
         padding: UI_SPACING.md,
-        borderWidth: UI_SIZE.panelBorder,
-        borderColor: colors.border,
         ...uiTransform
       }}
-      uiBackground={{ color: colors.background }}
     >
+      <SciFiSurface tone={colors.border} quiet={variant === 'quiet'} />
       {children}
     </UiEntity>
   )
