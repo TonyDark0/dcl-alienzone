@@ -58,7 +58,7 @@ export const CHASE_CARD_DETAILS: Record<
   CHAOS: {
     ...CARD_DETAILS.CHAOS,
     description:
-      'Arm an irreversible random redirect. Your deck locks until an alien is redirected once. One use per match.',
+      'Teleport immediately to a random location in the arena. It may be safer or more dangerous. A carried alien comes with you; its timer continues. One use per match.',
     rarity: 'EPIC',
     starter: false
   },
@@ -97,7 +97,6 @@ export function queuedCards<T extends { state: string }>(hand: readonly T[]): T[
 }
 export function armFirstCard(hand: CardSlotState[]) {
   for (const card of hand) if (card.state === 'ARMED') card.state = 'AVAILABLE'
-  if (hand.some((card) => card.type === 'CHAOS' && card.state === 'ACTIVE')) return
   const next = queuedCards(hand)[0]
   if (next) next.state = 'ARMED'
 }

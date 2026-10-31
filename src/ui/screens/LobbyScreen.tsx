@@ -1,5 +1,6 @@
 import { engine, UiCanvasInformation } from '@dcl/sdk/ecs'
 import ReactEcs, { Label, UiEntity } from '@dcl/sdk/react-ecs'
+import { isMobile } from '@dcl/sdk/platform'
 
 import { requestLeaderboard, requestReady } from '../../client/gameClient'
 import { CHASE_CARD_TYPES, CHASE_CARD_DETAILS } from '../../game/rules/chaseCards'
@@ -11,6 +12,8 @@ import { UI_COLORS, UI_SPACING, UI_TYPE } from '../theme/tokens'
 import { createMenuMotion, stepMenuMotion, type MenuMotionState } from '../state/uiMotion'
 import { SciFiSurface } from '../components/SciFiSurface'
 import { MatchLoadoutEditor } from '../components/MatchLoadoutEditor'
+import { PageNavigation } from '../components/PageNavigation'
+import { pageWindow } from '../state/pagination'
 
 type LobbyPage = 'HOME' | 'INSTRUCTIONS' | 'LEADERBOARD' | 'LOADOUT'
 
@@ -135,6 +138,7 @@ function LobbyHome({ compact }: { compact: boolean }) {
 
 type InstructionPage = 'OBJECTIVE' | 'SCORING' | 'CARDS'
 let instructionPage: InstructionPage = 'OBJECTIVE'
+let instructionSubpage = 0
 
 function HelpText({
   value,
@@ -159,6 +163,11 @@ function HelpText({
 }
 
 function Instructions({ compact }: { compact: boolean }) {
+  const pages = pageWindow(
+    instructionPage === 'CARDS' ? CARD_ROWS.map((_, index) => index) : instructionPage === 'SCORING' ? [0, 1] : [0],
+    instructionSubpage,
+    instructionPage === 'CARDS' ? 2 : 1
+  )
   return (
     <Panel
       variant="accent"
@@ -202,12 +211,13 @@ function Instructions({ compact }: { compact: boolean }) {
               sound="menu"
               onPress={() => {
                 instructionPage = page
+                instructionSubpage = 0
               }}
             />
           </UiEntity>
         ))}
       </UiEntity>
-      <UiEntity uiTransform={{ width: '100%', flexGrow: 1, minHeight: 0, flexDirection: 'column', overflow: 'scroll' }}>
+      <UiEntity uiTransform={{ width: '100%', flexGrow: 1, minHeight: 0, flexDirection: 'column', overflow: 'hidden' }}>
         {instructionPage === 'OBJECTIVE' ? (
           <UiEntity uiTransform={{ width: '100%', flexDirection: 'column' }}>
             <HelpText
@@ -229,71 +239,78 @@ function Instructions({ compact }: { compact: boolean }) {
           </UiEntity>
         ) : instructionPage === 'SCORING' ? (
           <UiEntity uiTransform={{ width: '100%', flexDirection: 'column' }}>
-            <HelpText
-              compact={compact}
-              height={compact ? 70 : 76}
-              value="An accepted throw, coin collection or power activation awards +1. Shadow grants one extra point if an attacker throws at the decoy. Rejected inputs and ordering cards give nothing. Holding awards nothing. Humans and bots use the same rules."
-            />
-            {SCORE_ROWS.map(([time, heat]) => (
-              <UiEntity
-                uiTransform={{
-                  width: '100%',
-                  height: compact ? 36 : 44,
-                  flexShrink: 0,
-                  padding: { left: 16, right: 16 },
-                  margin: { bottom: 6 },
-                  flexDirection: 'row',
-                  alignItems: 'center'
-                }}
-                uiBackground={{ color: UI_COLORS.space800 }}
-              >
-                <Label
-                  value={time}
-                  fontSize={compact ? 14 : 17}
-                  color={UI_COLORS.white}
-                  uiTransform={{ width: '86%', height: '100%' }}
-                  textAlign="middle-left"
+            {pages.page === 0 ? (
+              <UiEntity uiTransform={{ width: '100%', flexDirection: 'column' }}>
+                <HelpText
+                  compact={compact}
+                  height={compact ? 70 : 76}
+                  value="An accepted throw, coin collection or power activation awards +1. Shadow grants one extra point if an attacker throws at the decoy. Rejected inputs and ordering cards give nothing. Holding awards nothing. Humans and bots use the same rules."
                 />
-                <Label
-                  value={heat}
-                  fontSize={compact ? 16 : 20}
-                  color={UI_COLORS.alien}
-                  uiTransform={{ width: '14%', height: '100%' }}
-                  textAlign="middle-right"
+                {SCORE_ROWS.map(([time, heat]) => (
+                  <UiEntity
+                    uiTransform={{
+                      width: '100%',
+                      height: compact ? 36 : 44,
+                      flexShrink: 0,
+                      padding: { left: 16, right: 16 },
+                      margin: { bottom: 6 },
+                      flexDirection: 'row',
+                      alignItems: 'center'
+                    }}
+                    uiBackground={{ color: UI_COLORS.space800 }}
+                  >
+                    <Label
+                      value={time}
+                      fontSize={compact ? 14 : 17}
+                      color={UI_COLORS.white}
+                      uiTransform={{ width: '86%', height: '100%' }}
+                      textAlign="middle-left"
+                    />
+                    <Label
+                      value={heat}
+                      fontSize={compact ? 16 : 20}
+                      color={UI_COLORS.alien}
+                      uiTransform={{ width: '14%', height: '100%' }}
+                      textAlign="middle-right"
+                    />
+                  </UiEntity>
+                ))}
+              </UiEntity>
+            ) : (
+              <UiEntity uiTransform={{ width: '100%', flexDirection: 'column' }}>
+                <HelpText
+                  compact={compact}
+                  height={compact ? 40 : 50}
+                  value="A new holder has a 1-second arrival grace. You cannot return the same alien to its immediate giver for 2.5 seconds. Touching alone never passes it. Echo follows these rules too."
+                />
+                <HelpText
+                  compact={compact}
+                  accent
+                  height={compact ? 40 : 50}
+                  value="Skip protects for 3s. Invisible hides for 10s, except from Vacune. Freeze slows others to 50% for 2s; on Turbo it cancels the boost to normal speed instead. The timer keeps running."
+                />
+                <HelpText
+                  compact={compact}
+                  height={compact ? 34 : 44}
+                  value="Only the original alien attacks. A takeover no longer subtracts points in running mode."
+                />
+                <HelpText
+                  compact={compact}
+                  accent
+                  height={compact ? 90 : 100}
+                  value="CONTAINMENT: If attacked, tap the 5 targets as they appear. Hit at least 3 to earn +1; missed targets count. The crew contains the first 2 attacks regardless of your hits. The third attack ends the match, but you can still earn the bonus."
                 />
               </UiEntity>
-            ))}
-            <HelpText
-              compact={compact}
-              height={compact ? 40 : 50}
-              value="A new holder has a 1-second arrival grace. You cannot return the same alien to its immediate giver for 2.5 seconds. Touching alone never passes it. Echo follows these rules too."
-            />
-            <HelpText
-              compact={compact}
-              accent
-              height={compact ? 40 : 50}
-              value="Skip protects for 3s. Invisible hides for 10s, except from Vacune. Freeze slows others to 50% for 2s; on Turbo it cancels the boost to normal speed instead. The timer keeps running."
-            />
-            <HelpText
-              compact={compact}
-              height={compact ? 34 : 44}
-              value="Only the original alien attacks. A takeover no longer subtracts points in running mode."
-            />
-            <HelpText
-              compact={compact}
-              accent
-              height={compact ? 90 : 100}
-              value="CONTAINMENT: If attacked, tap the 5 targets as they appear. Hit at least 3 to earn +1; missed targets count. The crew contains the first 2 attacks regardless of your hits. The third attack ends the match, but you can still earn the bonus."
-            />
+            )}
           </UiEntity>
         ) : (
           <UiEntity uiTransform={{ width: '100%', flexDirection: 'column' }}>
             <HelpText
               compact={compact}
               height={compact ? 108 : 116}
-              value="General (green): repeat across rounds. Epic (red): each type once per match. Rare (purple): board pickups, never in decks. Prepare 3 cards per round before joining; unused cards expire. F / the ready card activates the queue head for +1. Reorder during play without pausing. Armed Chaos locks your queue until it redirects an incoming alien."
+              value="General (green): repeat across rounds. Epic (red): each type once per match. Rare (purple): board pickups, never in decks. Prepare 3 cards per round; unused cards expire. F / the ready card activates the next power for +1. Reorder without pausing. Chaos teleports you randomly on activation; it may land you near danger. A carried alien and its timer stay with you."
             />
-            {Array.from({ length: Math.ceil(CARD_ROWS.length / 2) }, (_, row) => row * 2).map((offset) => (
+            {[pages.start].map((offset) => (
               <UiEntity
                 uiTransform={{
                   width: '100%',
@@ -352,6 +369,14 @@ function Instructions({ compact }: { compact: boolean }) {
           </UiEntity>
         )}
       </UiEntity>
+      <PageNavigation
+        id="instructions-pages"
+        page={pages.page}
+        count={pages.count}
+        onPage={(page) => {
+          instructionSubpage = page
+        }}
+      />
       <UiEntity
         uiTransform={{ width: '100%', height: 76, flexShrink: 0, justifyContent: 'center', alignItems: 'center' }}
       >
@@ -478,7 +503,8 @@ export function LobbyScreen() {
           <Countdown compact={compact} />
         ) : motion.key === 'LOADOUT' ? (
           <MatchLoadoutEditor
-            compact={compact}
+            compact={compact || isMobile()}
+            viewport={{ width: canvas?.width ?? 1920, height: canvas?.height ?? 1080, mobile: isMobile() }}
             onBack={() => {
               lobbyPage = 'HOME'
             }}

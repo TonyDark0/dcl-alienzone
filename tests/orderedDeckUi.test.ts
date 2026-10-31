@@ -43,29 +43,28 @@ beforeEach(() => {
   updateUiState({ matchId: `ui-${++match}`, phase: 'HOLDING', localSeatId: 0, cards })
 })
 describe('touch-compatible single deck UI', () => {
-  it('shows irreversible active Chaos in the ready slot and disables ordering/activation', () => {
+  it('advances past consumed teleport Chaos without locking the queue', () => {
     const chaos: UiCardView = {
       ...CHASE_CARD_DETAILS.CHAOS,
       tier: 'EPIC',
       id: 'chaos',
       type: 'CHAOS',
       category: 'INTERVENTION',
-      state: 'ACTIVE'
+      state: 'SPENT'
     }
     updateUiState({
       cards: [
         chaos,
-        { ...CHASE_CARD_DETAILS.FREEZE, id: 'later', type: 'FREEZE', category: 'INTERVENTION', state: 'AVAILABLE' }
+        { ...CHASE_CARD_DETAILS.FREEZE, id: 'later', type: 'FREEZE', category: 'INTERVENTION', state: 'ARMED' }
       ]
     })
     const tree = nodes(OrderedDeck({ compact: true }) as Node)
     const tile = tree.find((node) => node.type === CardTile)!
-    expect(tile.props.card.type).toBe('CHAOS')
-    expect(tile.props.passive).toBe(true)
-    expect(tile.props.stateLabel).toContain('LOCKED')
+    expect(tile.props.card.type).toBe('FREEZE')
+    expect(tile.props.stateLabel).toBe('READY')
     expect(
       tree.find((node) => node.type === ActionButton && node.props.interactionId === 'order-deck-open')!.props.disabled
-    ).toBe(true)
+    ).toBe(false)
     expect(tree.some((node) => node.props.label === 'CHOOSE TARGET')).toBe(false)
   })
   it('shows a five-second setup with make-first and arrow controls, never activation', () => {

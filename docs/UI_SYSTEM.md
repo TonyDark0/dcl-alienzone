@@ -12,6 +12,12 @@ The approved [Sci-Fi Design System](SCI_FI_DESIGN_SYSTEM.md) is implemented loca
 
 Desktop hover eases over 120 ms; press feedback starts immediately and releases over 110 ms. Lobby page navigation exits over 160 ms and enters over 220 ms, with interruptible state. The three-second entry countdown and game requests are not delayed by transitions. Results and card pickers have short entrance feedback. No custom shader, UI framework or backend dependency is added.
 
+## Content navigation
+
+Scene-owned menus do not use `overflow: 'scroll'`: the pinned SDK exposes no scrollbar width/color styling and the Explorer's stock gray controls do not match the visual system. `PageNavigation` uses 44-unit Previous/Next buttons, a page count and a three-unit cyan segmented indicator. Hide it when there is only one page. This is discrete whole-item navigation, not a fake scroll thumb; it works without wheel input, dragging or hover. Native DCL menus remain unchanged.
+
+The loadout editor fits all nine round slots without scrolling. The catalog uses complete horizontal card options and General/Epic tabs, with the number of visible rows calculated from the available height. Narrow aspect ratios switch between round decks and available cards instead of nesting scroll regions. Tutorial scoring uses two pages; tutorial cards show two complete entries per page; the expanded world leaderboard shows four records per page and retains global rank numbers. The current-round queue has at most three cards and fits without scrolling. Main actions stay outside paged content.
+
 ## Ownership
 
 Decentraland owns profile, chat, voice, minimap, system menus, graphics/audio settings and World exit.
@@ -50,9 +56,9 @@ The tutorial uses three touch-friendly tabs: Objective, Scoring and Cards. Text 
 - Only the first unused card is ready. F / touch consumes or activates it, then advances the queue. Already active effects continue their lifetime independently of the ready slot. The existing 1.2-second activation cooldown is displayed on the next card.
 - Spent/active cards cannot be reinserted, duplicated or refunded by ordering. No category controls exist in the running HUD; the archived seated components are not used there.
 - Card labels are centered: title, availability/state, icon and action hint.
-- Armed Chaos replaces the ready slot with ARMED / LOCKED and WAITING FOR ALIEN. It has no target picker and cannot be bypassed through ordering. After the incoming random redirect resolves, the next card becomes ready. A top-right icon/name/caster row matches the first scoreboard row's size and top alignment: 208×34 desktop or 164×28 compact virtual units. New accepted activations replace it immediately, with no queue; short slide/fade keeps its 0.9-second lifetime. It never intercepts input. Every accepted card/pickup activation also shows a numeric +1 notice.
+- Chaos immediately teleports its user randomly and advances the ready slot, with no target picker or queue lock. Its accepted activation uses the same top-right icon/name/caster row as other powers: 208×34 desktop or 164×28 compact virtual units. New activations replace the prior row immediately; a short slide/fade keeps its 0.9-second lifetime. It never intercepts input. Every accepted card/pickup activation also shows a numeric +1 notice.
 - The lobby uses the transparent Alienzone lettering, one centred tagline and three plain buttons without hints or seat counts. Scores use numbers only.
-- The compact queue panel centers its remaining cards, scrolls for bonus cards and displays DECK EMPTY when exhausted. The mobile picker uses explicit touch controls and leaves the native movement joystick visible.
+- The compact queue panel centers its at-most-three remaining cards without native scrollbars and displays DECK EMPTY when exhausted. The mobile picker uses explicit touch controls and leaves the native movement joystick visible.
 
 ## Takeover presentation
 
@@ -78,7 +84,7 @@ There is no takeover modal and no Continue button. The HUD remains visible while
 
 ## Acceptance
 
-- ORDER DECK opens the current-round queue without activating a power. Selecting an available card moves it to the front; tapping the ready tile activates it. Timed powers keep their duration after advancement; armed Chaos locks ordering/activation until resolution. The server revalidates all actions. See [Round Powers and Loadouts](ROUND_POWERS_AND_LOADOUTS.md).
+- ORDER DECK opens the current-round queue without activating a power. Selecting an available card moves it to the front; tapping the ready tile activates it. Timed powers keep their duration after advancement; Chaos consumes immediately. The server revalidates all actions. See [Round Powers and Loadouts](ROUND_POWERS_AND_LOADOUTS.md).
 
 - Objective and scoring are understandable without external documentation.
 - Leaderboard is reachable from the lobby.

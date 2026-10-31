@@ -18,7 +18,7 @@ General. Immune to incoming aliens for 3s, without removing one already held. Ac
 
 ![CHAOS](../assets/Images/ui/cards/az_card_chaos_v001.png)
 
-Epic, one slot per match. Activate to irreversibly arm a random redirect for the next incoming alien, locking the queue until resolution or round end. No target selection; no immediate redirect of an alien already held. Respect return protection, immunity and occupancy.
+Epic, one slot per match. Activate to teleport immediately to a random valid location. It may escape danger or land near another threat. Any carried alien travels with you, retaining its timer and return-protection deadline. Consume immediately for +1 activation; do not redirect aliens, grant immunity, award a pass point or lock the queue. Destination is server-selected, not player-selected.
 
 ## HIDDEN WATCH
 

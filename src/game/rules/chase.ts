@@ -41,6 +41,8 @@ export interface ChasePlayer {
   immuneUntil: number
   invisibleUntil: number
   touchedThisRound: boolean
+  /** Monotonic server-owned discontinuity marker; clients must not interpolate a teleport. */
+  teleportRevision?: number
 }
 export interface ChaseArenaState {
   players: ChasePlayer[]

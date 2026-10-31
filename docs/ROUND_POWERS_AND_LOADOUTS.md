@@ -1,10 +1,10 @@
-# Round Loadouts and Powers — v6
+# Round Loadouts and Powers — v6.1
 
-Owner-approved running-mode revision, 2026-10-29. This supersedes older deck/card semantics; the archived seated engine is unchanged. No publishing or native client launch is authorized.
+Owner-approved running-mode revision, 2026-10-31. This supersedes older deck/card semantics, including armed redirect Chaos; the archived seated engine is unchanged. No publishing or native client launch is authorized.
 
 ## Preparation and categories
 
-Play New Match opens a touch-compatible deck builder **before joining the match**. Prepare three ordered decks of exactly three cards each, one deck per round. Select a round, select a slot, choose a card and use arrows to order it. Find Match submits the complete plan. The server validates it before starting; future-round decks cannot change after entry. Rematch reuses the submitted plan; Main Menu permits editing before a new match.
+Play New Match opens a touch-compatible deck builder **before joining the match**. Prepare three ordered decks of exactly three cards each, one deck per round. Three separate round blocks display all nine numbered slots. Tap a slot in any round; the replacement catalog names the exact round and card being edited. Tap REPLACE to change only that slot, or use EARLIER / LATER to move the selected card within that round. Card 1 is used first. Already-placed Epics show their occupied round/slot and cannot be duplicated; replacing one frees it for another slot. READY · FIND MATCH submits the complete plan. The server validates it before starting; future-round decks cannot change after entry. Rematch reuses the submitted plan; Main Menu permits editing before a new match.
 
 | Category | Color  | Availability                                               | Cards                                 |
 | -------- | ------ | ---------------------------------------------------------- | ------------------------------------- |
@@ -19,10 +19,10 @@ Each round activates only its own planned deck. Discard **all** remaining cards 
 ## Points and transfer safeguards
 
 - Every accepted card activation awards +1 once, including automatic activation on a Rare pickup. Loading, reordering, rejected actions, repeated requests and merely armed/spent cards award nothing.
-- A successful transfer still awards +1 to its outgoing holder, for either alien. A successful Symbiosis or Chaos redirect can therefore earn one transfer point in addition to the separate activation point.
+- A successful transfer still awards +1 to its outgoing holder, for either alien. A successful Symbiosis can earn one transfer point in addition to its activation point. Chaos teleportation is not a transfer and grants only the activation point.
 - Shadow awards +1 when activated and another +1 only if an attacker actually attempts a valid throw into that decoy. It does not award points for ordinary expiry.
 - Coins, untouched-round and containment bonuses retain their existing rules.
-- Each alien separately protects its immediate giver from receiving that same alien back for 2.5s after transfer. This is not global immunity: another recipient or the other alien can still reach that astronaut if otherwise eligible. The UI, bots, Chaos and Symbiosis all use the same server eligibility checks.
+- Each alien separately protects its immediate giver from receiving that same alien back for 2.5s after transfer. This is not global immunity: another recipient or the other alien can still reach that astronaut if otherwise eligible. The UI, bots and Symbiosis all use the same server eligibility checks; teleportation does not reset protection.
 - Preserve one-second arrival grace, explicit E/touch ordinary throws, 1.5m proximity with the existing bounded edge allowance, Skip protection, one alien per astronaut and server-owned deadlines/points. A new nonce is required after each transfer.
 
 ## Rare board pickups
@@ -52,9 +52,11 @@ Echo can be passed for the same +1, respects anti-return/proximity/arrival/occup
 
 ### Chaos
 
-Activate first; it does not auto-arm on receipt. There is no target selection. Once armed it cannot be cancelled, replaced or bypassed by ordering/activating another card. It locks the ready slot until the **next incoming alien** is automatically sent to a random eligible astronaut once. Arming while already holding an alien does not redirect that existing possession.
+On activation, immediately teleport the caster to a random valid point in the 30×15m arena. There is no target or destination selection. This may escape a nearby pursuer or land near a different threat; destinations are not scored for safety. Consume Chaos immediately and advance the queue. It remains one Epic slot per match and grants the ordinary +1 activation point, not a transfer point.
 
-Honor Skip, Vacune for Echo, double-occupancy and same-alien return protection. If all destinations are temporarily unavailable, retain the armed card/alien until one becomes eligible or takeover expires the card. Finite chained redirects are capped by the number of seats; each card is consumed once. After resolution, unlock the next queued card. One Chaos slot per match.
+The server uses an isolated seeded stream, a 0.45m edge margin, the existing 4m central-furniture clearance, at least 2m displacement and 0.75m body separation. These are landing-validity checks, not protection from danger: the new location may be within throw range of another astronaut. Keep the carried original or Echo, shared fuse, arrival grace, anti-return deadline and all active effects unchanged. Chaos never redirects a later alien, grants no immunity and never locks ordering. Existing 1.2s activation cooldown still applies. If no valid destination is found after bounded retries/grid fallback, reject without consuming the card or awarding points.
+
+Teleport snapshots carry a monotonic revision so avatars/nameplates/held-alien markers snap rather than sliding across the map. The tracked camera follows the same displayed pose. Proximity caches are cleared. Coin/power contact tests start at the new position on the next simulation step; the intervening line is not traversed or collected. Bots call the same activation API and cannot choose a safer destination.
 
 ### Shadow
 
@@ -79,5 +81,5 @@ Round-long protection from Freeze and **incoming Echo only**, plus visibility of
 - Existing icon PNGs are reused as temporary artwork for Shadow, Symbiosis, Vacune and Turbo; no new assets or final icon art were generated in this revision.
 - The latest-only 0.9s top-right announcement and per-astronaut +1 notices remain. New tier frames apply to cards and the tutorial. Score displays stay numeric.
 - Retain tracked camera, all three shared takeover close-ups and local-only shake/red/tapping.
-- Automated tests must cover deck validation/expiry, seeded appearance, once-only contact/points, protection on both aliens, Chaos lock/cycles, decoy expiry/traps, ray misses/first body, Vacune visibility and worst-case snapshot size.
+- Automated tests must cover deck validation/expiry, seeded appearance, once-only contact/points, protection on both aliens, Chaos bounds/determinism/snapshot snaps/no swept pickups, decoy expiry/traps, ray misses/first body, Vacune visibility and worst-case snapshot size.
 - Native desktop/mobile verification is still required for touch layout, clone identification, alpha sorting, collision feel, simultaneous clone creation and frame pacing. Eight 3,416-triangle clones add up to 27,328 triangles; the inspected core GLB peak is ~57,386 triangles before labels/markers/primitive geometry, close to the six-parcel 60,000 guidance. Final alien/VFX geometry needs a fresh budget review. No parcel expansion or GLB modification is assumed.

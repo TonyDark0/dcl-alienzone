@@ -14,9 +14,9 @@ This document defines the binding DCL Alienzone MVP. Scope changes require an en
 - +1 per successful tag, +1 per untouched round and the containment bonus. No danger bands or takeover score penalty in running mode.
 - Ten shared random coin pickups per round, thirty per match, at most ten simultaneous: first contact awards +1 and removes the coin; leftovers expire without value. No mid-round respawn or economy.
 - Three pre-match ordered decks of three cards, one per round. General green: Freeze, Hidden Watch, Invisible, Skip. Epic red, each type once per match: Chaos, Shadow, Symbiosis, Vacune. Discard unused cards each round; no persistent reward economy is enabled.
-- Rare purple board-only pickups: one 2x Turbo per round and one Echo per match in a random round. Random armed Chaos locks its queue until the next incoming redirect. Five-second Shadow decoys and straight-five-metre Symbiosis. Vacune resists Freeze/Echo and reveals invisible astronauts/decoys for one round.
+- Rare purple board-only pickups: one 2x Turbo per round and one Echo per match in a random round. Chaos immediately teleports the caster to a random valid point, without safety guarantees or changing any carried alien/timer. Five-second Shadow decoys and straight-five-metre Symbiosis. Vacune resists Freeze/Echo and reveals invisible astronauts/decoys for one round.
 - Generated transparent logo and power icons, with a sub-second latest-only activation notification at the top-right, aligned with the first scoreboard row.
-- One ready slot per player; F / touch activates the current round queue head for +1. Live reordering does not pause play and is locked only by armed Chaos. A 2.5s per-alien protection prevents immediate return to its giver.
+- One ready slot per player; F / touch activates the current round queue head for +1. Live reordering does not pause play; Chaos consumes immediately without a queue lock. A 2.5s per-alien protection prevents immediate return to its giver.
 - Authoritative server state, validation, bots and Scene Storage leaderboard.
 - Mobile-first HUD, reactions, camera takeover, music and SFX.
 - Attacked-seat takeover containment: five timed targets and a single +1 bonus for at least three hits.

@@ -14,22 +14,22 @@ A baby alien escaped from an egg aboard a spaceship. Astronauts pass it before t
 
 **Public test World: TBD — not deployed.** The owner must supply the exact DCL NAME and authorize deployment. This repository is not a live game URL. Replace this status with the verified visit link after publishing and testing the World.
 
-- [Game Design Document](design/gdd.md): the official sections at the required `/design/gdd.md` path.
+- [Game Design Document](design/gdd.md): current v6.1 running-tag mechanics, test questions and honest evidence gaps at the required `/design/gdd.md` path.
 - [Application readiness](design/STUDIO_READINESS.md): evidence and remaining requirements.
 - [Featured-game research](design/PLAYTEST_NOTES.md): owner-reported observations and unconfirmed play/return records.
 
-Prepared against [Studio Onboarding](https://docs.decentraland.org/creator/studio-onboarding), checked **2026-10-25**. Repository preparation does not imply program acceptance or funding.
+Prepared against [Studio Onboarding](https://docs.decentraland.org/creator/studio-onboarding), checked **2026-10-31**. Repository preparation does not imply program acceptance or funding. The current GDD separates playable mechanics from proposed rewards and unmeasured retention.
 
 ## How to play
 
-- Before matchmaking, prepare three ordered decks of three cards, one per round. Review the first deck during the five-second setup. F / touch activates its head for +1; current-round reordering does not pause play and locks only while Chaos is armed. Unused cards expire each round.
+- Before matchmaking, prepare three ordered decks of three cards, one per round. Three round blocks show all nine slots; tap a slot, choose its replacement and set Earlier/Later order. General/Epic catalog pages show complete options without native scrollbars. Review the first deck during the five-second setup. F / touch activates its head for +1; current-round reordering never pauses play. Unused cards expire each round.
 - Desktop: WASD moves in screen-relative directions; E throws within 1.5m. Mobile: use the native joystick and touch THROW / the ready card. Contact alone never transfers the alien.
 - Your suit is revealed in close-up before a smooth zoom-out to a fixed-heading, nominal 60° drone tracking your own astronaut at center, 10% closer than the former shared camera. Direction changes send immediately and the suit turns quickly without a U-shaped movement arc. All three attack close-ups are shared; shake, red flashes and tapping are local-victim-only.
 - Earn +1 per transfer and +1 for a whole round without receiving either alien.
 - First to touch a coin earns +1. Exactly 10 spawn each round, 30 per match, never more than 10 at once. Collected coins disappear for everyone; leftovers expire and are replaced by 10 fresh positions next round. There is no mid-round respawn or shop currency.
 - Use cards to disrupt other players.
 
-The original alien uses one 28-second shared timer that never restarts on a throw. Three takeovers end the match. Hit at least three of five containment targets when attacked for an optional +1. Prepare three ordered decks of three cards before matchmaking; leftovers expire each round. Green General cards repeat; each red Epic type can occupy one slot per match. Purple Turbo (one per round) and Echo (one per match) are board-only pickups. Accepted activations/pickups grant +1; valid transfers retain +1. Same-alien immediate return is blocked for 2.5s. Armed random Chaos locks the queue until the next incoming redirect; Shadow adds a decoy, Symbiosis a straight 5m throw, and Vacune round-long Freeze/Echo protection plus Invisible/Shadow visibility. Full rules: [Round Powers and Loadouts](docs/ROUND_POWERS_AND_LOADOUTS.md).
+The original alien uses one 28-second shared timer that never restarts on a throw. Three takeovers end the match. Hit at least three of five containment targets when attacked for an optional +1. Prepare three ordered decks of three cards before matchmaking; leftovers expire each round. Green General cards repeat; each red Epic type can occupy one slot per match. Purple Turbo (one per round) and Echo (one per match) are board-only pickups. Accepted activations/pickups grant +1; valid transfers retain +1. Same-alien immediate return is blocked for 2.5s. Chaos immediately teleports you to a random valid arena point, with no safety guarantee, target selection or queue lock; any held alien and its timer stay with you. Shadow adds a decoy, Symbiosis a straight 5m throw, and Vacune round-long Freeze/Echo protection plus Invisible/Shadow visibility. Full rules: [Round Powers and Loadouts](docs/ROUND_POWERS_AND_LOADOUTS.md).
 
 ## Current status
 

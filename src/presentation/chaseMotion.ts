@@ -7,7 +7,7 @@ import {
   type ChasePlayer
 } from '../game/rules/chase'
 
-export type ChasePose = { x: number; z: number; yaw: number }
+export type ChasePose = { x: number; z: number; yaw: number; teleportRevision?: number }
 export const MAX_MOTION_FORECAST_SECONDS = 0.2
 
 /** Fill the spaces between 10 Hz snapshots, without changing authoritative state.
@@ -40,6 +40,7 @@ export function projectChasePlayer(
 
 /** The numerical pose is owned here, not read back from renderer-delayed Transforms. */
 export function smoothChasePose(previous: ChasePose, target: ChasePose, dt: number, snap = false): ChasePose {
+  snap ||= (target.teleportRevision ?? 0) !== (previous.teleportRevision ?? 0)
   const elapsed = Math.max(0, Number.isFinite(dt) ? dt : 0)
   const amount = snap ? 1 : 1 - Math.exp(-elapsed * 30)
   // Reach 95% of a new facing in 100ms rather than dragging the suit through a
@@ -48,6 +49,7 @@ export function smoothChasePose(previous: ChasePose, target: ChasePose, dt: numb
   return {
     x: previous.x + (target.x - previous.x) * amount,
     z: previous.z + (target.z - previous.z) * amount,
-    yaw: previous.yaw + wrapAngle(target.yaw - previous.yaw) * turnAmount
+    yaw: previous.yaw + wrapAngle(target.yaw - previous.yaw) * turnAmount,
+    ...(target.teleportRevision === undefined ? {} : { teleportRevision: target.teleportRevision })
   }
 }

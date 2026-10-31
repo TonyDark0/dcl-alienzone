@@ -21,7 +21,7 @@ Players earn +1 per accepted nearby throw, +1 per shared coin collected, +1 for 
 2. Confirm the validated plan and join a match; empty seats become bots with valid varied plans.
 3. The arena and local suit camera reveal are prepared during the countdown.
 4. Review the first-round order during a five-second setup, then run, evade and explicitly throw the original alien or Echo. Same-alien immediate return is blocked for 2.5s.
-5. Activate the first card for +1, reorder the current queue without pausing (except armed Chaos), collect board-only Turbo/Echo and use decoys, protection or a straight shot. Discard leftovers and use the next prepared deck each round. See [v6 Powers](ROUND_POWERS_AND_LOADOUTS.md).
+5. Activate the first card for +1, reorder the current queue without pausing, collect board-only Turbo/Echo and use random Chaos teleportation, decoys, protection or a straight shot. Discard leftovers and use the next prepared deck each round. See [v6.1 Powers](ROUND_POWERS_AND_LOADOUTS.md).
 6. The original alien triggers a takeover when the shared fuse expires.
 7. Repeat until the third takeover.
 8. Show the containment ranking, persist human records and offer rematch or main menu.

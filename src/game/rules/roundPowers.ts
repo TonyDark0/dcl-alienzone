@@ -10,6 +10,46 @@ export interface BoardPower {
   z: number
   opensAt: number
 }
+
+/** Independent seeded stream; reject solid furniture/body overlap, not dangerous neighborhoods. */
+export function chaosDestination(
+  seed: number,
+  cast: number,
+  origin: { x: number; z: number },
+  bodies: readonly { x: number; z: number }[]
+) {
+  let random = (seed ^ Math.imul(cast + 1, 104729) ^ 0x54454c45) >>> 0
+  // Avalanche nearby match seeds before sampling; the LCG alone correlates its first output.
+  random = Math.imul(random ^ (random >>> 16), 0x7feb352d)
+  random = Math.imul(random ^ (random >>> 15), 0x846ca68b)
+  random = (random ^ (random >>> 16)) >>> 0
+  const next = () => {
+    random = (Math.imul(random, 1664525) + 1013904223) >>> 0
+    return random / 0x100000000
+  }
+  const minX = CHASE_CONFIG.minX + 0.45,
+    maxX = CHASE_CONFIG.maxX - 0.45
+  const minZ = CHASE_CONFIG.minZ + 0.45,
+    maxZ = CHASE_CONFIG.maxZ - 0.45
+  const valid = (p: { x: number; z: number }) =>
+    Math.hypot(p.x - 16, p.z - 16) >= 4 &&
+    Math.hypot(p.x - origin.x, p.z - origin.z) >= 2 &&
+    bodies.every((body) => Math.hypot(p.x - body.x, p.z - body.z) >= 0.75)
+  for (let attempt = 0; attempt < 128; attempt++) {
+    const point = { x: minX + next() * (maxX - minX), z: minZ + next() * (maxZ - minZ) }
+    if (valid(point)) return point
+  }
+  const offset = Math.floor(next() * 162)
+  for (let i = 0; i < 162; i++) {
+    const cell = (offset + i * 37) % 162
+    const point = {
+      x: minX + ((cell % 18) * (maxX - minX)) / 17,
+      z: minZ + (Math.floor(cell / 18) * (maxZ - minZ)) / 8
+    }
+    if (valid(point)) return point
+  }
+  return null
+}
 export interface ShadowDecoy {
   id: string
   owner: SeatId

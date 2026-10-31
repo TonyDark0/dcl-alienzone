@@ -193,10 +193,6 @@ export function requestCurrentCard() {
   if (state.phase !== 'HOLDING' || !card) return
   const now = state.snapshotServerNow + Math.max(0, Date.now() - state.snapshotReceivedAtMs) / 1000
   if (now < state.cardReadyAt) return
-  if (card.type === 'CHAOS' && card.targetSeatId === undefined) {
-    updateUiState({ lastActionError: 'Choose a Chaos target in ORDER DECK first.' })
-    return
-  }
   requestActivateCard(card.id)
 }
 

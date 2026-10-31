@@ -16,6 +16,8 @@ interface CardTileProps {
   passive?: boolean
   stateLabel?: string
   actionLabel?: string
+  wrapTitle?: boolean
+  horizontal?: boolean
 }
 
 const STATE_COLOR = {
@@ -45,7 +47,9 @@ export function CardTile({
   mini = false,
   passive = false,
   stateLabel,
-  actionLabel
+  actionLabel,
+  wrapTitle = false,
+  horizontal = false
 }: CardTileProps) {
   const tone =
     card.tier && card.state !== 'SPENT'
@@ -68,13 +72,84 @@ export function CardTile({
     actionLabel ?? (interactionDisabled ? 'LOCKED' : mini || compact ? STATE_HINT[card.state] : card.description)
   const displayName = card.name
 
+  if (horizontal)
+    return (
+      <UiEntity
+        uiTransform={{
+          width: '100%',
+          height: 84,
+          padding: 10,
+          flexShrink: 0,
+          flexDirection: 'row',
+          alignItems: 'center',
+          pointerFilter: 'block'
+        }}
+        onMouseDown={
+          disabled
+            ? undefined
+            : () => {
+                pressControl(controlId)
+                playUiSound('press')
+                onPress()
+              }
+        }
+        onMouseEnter={
+          disabled
+            ? undefined
+            : () => {
+                setControlHovered(controlId, true)
+                playUiSound('highlight')
+              }
+        }
+        onMouseLeave={disabled ? undefined : () => setControlHovered(controlId, false)}
+      >
+        <SciFiSurface tone={visuallyDisabled ? UI_COLORS.disabled : tone} hover={motion.hover} press={motion.press} />
+        <UiEntity
+          uiTransform={{ width: 44, height: 44, flexShrink: 0, margin: { left: 4, right: 12 }, pointerFilter: 'none' }}
+          uiBackground={{
+            texture: { src: card.icon, filterMode: 'bi-linear', wrapMode: 'clamp' },
+            textureMode: 'stretch'
+          }}
+        />
+        <UiEntity
+          uiTransform={{
+            flexGrow: 1,
+            minWidth: 0,
+            height: 64,
+            flexDirection: 'column',
+            justifyContent: 'center',
+            pointerFilter: 'none'
+          }}
+        >
+          <Label
+            value={displayName}
+            fontSize={17}
+            color={UI_COLORS.white}
+            uiTransform={{ width: '100%', height: 42, flexShrink: 0, pointerFilter: 'none' }}
+          />
+          <Label
+            value={stateLabel ?? card.state}
+            fontSize={12}
+            color={tone}
+            uiTransform={{ width: '100%', height: 18, flexShrink: 0, pointerFilter: 'none' }}
+          />
+        </UiEntity>
+        <Label
+          value={detail}
+          fontSize={12}
+          color={visuallyDisabled ? UI_COLORS.textMuted : tone}
+          uiTransform={{ width: 104, height: 44, flexShrink: 0, margin: { left: 8 }, pointerFilter: 'none' }}
+        />
+      </UiEntity>
+    )
+
   return (
     <UiEntity
       uiTransform={{
         width: mini ? size.width : compact ? 224 : 268,
         height: mini ? size.height : compact ? 180 : 204,
         flexShrink: 0,
-        padding: mini ? 12 : UI_SPACING.md,
+        padding: mini ? (wrapTitle ? 8 : 12) : UI_SPACING.md,
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
@@ -103,7 +178,7 @@ export function CardTile({
       <UiEntity
         uiTransform={{
           width: '100%',
-          height: mini ? 30 : 34,
+          height: mini ? (wrapTitle ? 44 : 30) : 34,
           flexShrink: 0,
           flexDirection: 'column',
           alignItems: 'center',
@@ -112,7 +187,7 @@ export function CardTile({
       >
         <Label
           value={displayName}
-          fontSize={mini ? (compact ? 17 : 19) : UI_TYPE.strong}
+          fontSize={mini ? (compact || wrapTitle ? 17 : 19) : UI_TYPE.strong}
           color={UI_COLORS.white}
           textAlign="middle-center"
           uiTransform={{ width: '100%', height: '100%' }}
@@ -123,14 +198,14 @@ export function CardTile({
         fontSize={mini ? 12 : 14}
         color={tone}
         textAlign="middle-center"
-        uiTransform={{ width: '100%', height: 20, flexShrink: 0 }}
+        uiTransform={{ width: '100%', height: wrapTitle ? 18 : 20, flexShrink: 0 }}
       />
       <UiEntity
         uiTransform={{
           width: compact ? 46 : 56,
           height: compact ? 46 : 56,
           flexShrink: 0,
-          margin: { top: 2, bottom: 4 },
+          margin: { top: 2, bottom: wrapTitle ? 2 : 4 },
           pointerFilter: 'none'
         }}
         uiBackground={{

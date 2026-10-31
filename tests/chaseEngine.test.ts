@@ -154,30 +154,36 @@ describe('running power semantics', () => {
     g.advance(10)
     expect(card.state).toBe('SPENT')
   })
-  it('Chaos arms without a target, locks the queue and redirects the next incoming alien once', () => {
+  it('Chaos teleports immediately, consumes once and does not redirect an incoming alien', () => {
     const g = game(),
       card = give(g, 1, 'CHAOS')
+    const before = { ...g.state.arena!.players[1] },
+      deadline = g.state.fuseEndsAt
     expect(g.activate(1, card.id, 'ORIGINAL').accepted).toBe(true)
-    expect(card.state).toBe('ACTIVE')
-    expect(g.orderDeck(1, []).accepted).toBe(false)
+    expect(
+      Math.hypot(g.state.arena!.players[1].x - before.x, g.state.arena!.players[1].z - before.z)
+    ).toBeGreaterThanOrEqual(2)
+    expect(card.state).toBe('SPENT')
+    expect(g.orderDeck(1, []).accepted).toBe(true)
     expect(g.state.aliens[0].holderSeatId).toBe(0)
     contact(g)
-    expect([0, 1]).not.toContain(g.state.aliens[0].holderSeatId)
+    expect(g.state.aliens[0].holderSeatId).toBe(1)
     expect(card.state).toBe('SPENT')
-    expect(g.state.seats[1].heat).toBe(2)
+    expect(g.state.seats[1].heat).toBe(1)
+    expect(g.state.fuseEndsAt).toBe(deadline)
     expect(g.activate(1, card.id, 'ORIGINAL').accepted).toBe(false)
   })
-  it('Chaos waits if every random destination is protected, without creating a loop', () => {
+  it('Chaos does not depend on other players immunity and never waits for a future arrival', () => {
     const g = game()
     for (const p of g.state.arena!.players.slice(2)) p.immuneUntil = g.state.now + 2
     const card = give(g, 1, 'CHAOS')
     g.activate(1, card.id, 'ORIGINAL')
     contact(g)
-    expect(card.state).toBe('ACTIVE')
+    expect(card.state).toBe('SPENT')
     expect(g.state.aliens[0].holderSeatId).toBe(1)
     g.advance(2.1)
     expect(card.state).toBe('SPENT')
-    expect([0, 1]).not.toContain(g.state.aliens[0].holderSeatId)
+    expect(g.state.aliens[0].holderSeatId).toBe(1)
   })
   it('Echo spawns on a different eligible player, shares the fuse and remains globally unique', () => {
     const g = game(),
@@ -263,7 +269,7 @@ describe('running round lifecycle', () => {
     g.resetMovementInput(0)
     expect(g.moveInput(0, 0, 1, 1).accepted).toBe(true)
   })
-  it('a finite cycle of active Chaos cards resolves once per card, without a server loop', () => {
+  it('multiple teleport Chaos activations cannot start a redirect chain or change alien turns', () => {
     const g = game()
     const a = give(g, 1, 'CHAOS', 2),
       b = give(g, 2, 'CHAOS', 1)
@@ -273,8 +279,8 @@ describe('running round lifecycle', () => {
     contact(g)
     expect(a.state).toBe('SPENT')
     expect(b.state).toBe('SPENT')
-    expect(g.state.aliens[0].holderSeatId).toBe(0)
-    expect(g.state.aliens[0].turn).toBe(3)
+    expect(g.state.aliens[0].holderSeatId).toBe(1)
+    expect(g.state.aliens[0].turn).toBe(1)
   })
   it('awards untouched once per round, no -5 penalty, removes Echo and clears timed effects', () => {
     const g = game()

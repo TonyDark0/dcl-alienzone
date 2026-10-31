@@ -20,12 +20,11 @@ export function OrderedDeck({ compact = false, setup = false }: { compact?: bool
     deckOpen = false
   }
   const queue = queuedCards(state.cards)
-  const chaos = state.cards.find((card) => card.type === 'CHAOS' && card.state === 'ACTIVE')
-  const current = chaos ?? queue[0]
+  const current = queue[0]
   const live = state.phase === 'HOLDING'
   const now = state.snapshotServerNow + Math.max(0, Date.now() - state.snapshotReceivedAtMs) / 1000
   const cooldown = Math.max(0, state.cardReadyAt - now)
-  const canOrder = (live || setup) && !chaos
+  const canOrder = live || setup
   const open = canOrder && (setup || deckOpen)
   const motion = entranceMotion('ordered-deck', open, UI_MOTION.picker)
   const choose = (id: string) =>
@@ -54,7 +53,7 @@ export function OrderedDeck({ compact = false, setup = false }: { compact?: bool
             width={160}
             height={52}
             fontSize={14}
-            disabled={!live || !!chaos}
+            disabled={!live}
             interactionId="order-deck-open"
             sound="menu"
             onPress={() => {
@@ -67,12 +66,9 @@ export function OrderedDeck({ compact = false, setup = false }: { compact?: bool
               mini
               compact={compact}
               interactionId="current-card"
-              stateLabel={chaos ? 'ARMED · LOCKED' : cooldown > 0 ? `WAIT ${Math.ceil(cooldown)}s` : 'READY'}
-              actionLabel={
-                chaos ? 'WAITING FOR ALIEN' : cooldown > 0 ? 'COOLDOWN' : isMobile() ? 'ACTIVATE' : 'F · ACTIVATE'
-              }
-              passive={!!chaos}
-              interactionDisabled={!live || (!chaos && cooldown > 0)}
+              stateLabel={cooldown > 0 ? `WAIT ${Math.ceil(cooldown)}s` : 'READY'}
+              actionLabel={cooldown > 0 ? 'COOLDOWN' : isMobile() ? 'ACTIVATE' : 'F · ACTIVATE'}
+              interactionDisabled={!live || cooldown > 0}
               onPress={() => requestCurrentCard()}
             />
           ) : (
@@ -137,8 +133,9 @@ export function OrderedDeck({ compact = false, setup = false }: { compact?: bool
           <UiEntity
             uiTransform={{
               width: '100%',
-              maxHeight: 370,
-              overflow: 'scroll',
+              height: compact ? 310 : 330,
+              flexShrink: 0,
+              overflow: 'hidden',
               flexDirection: 'row',
               justifyContent: 'center'
             }}

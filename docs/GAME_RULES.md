@@ -19,7 +19,7 @@ The current arena is an **open-room movement preview**, bounded at X 1–31 / Z 
 - First contact with a shared coin: **+1** to the collector, identically for humans and bots, with or without an alien.
 - A whole round without receiving **either** alien: **+1**, awarded once at takeover. The starting holder and Echo spawn recipient count as having received an alien.
 - Containment: **+1** to the attacked player for at least three hits out of five.
-- Every accepted card activation or Rare pickup activation: **+1 once**. Shadow adds **+1** only if an attacker throws at its decoy. Successful Symbiosis/Chaos transfers retain their separate transfer point. Rejected requests, ordering/loading and holding alone award nothing.
+- Every accepted card activation or Rare pickup activation: **+1 once**. Shadow adds **+1** only if an attacker throws at its decoy. Successful Symbiosis transfers retain their separate transfer point. Chaos teleports, not transfers. Rejected requests, ordering/loading and holding alone award nothing.
 - No two-second scoring hold, danger bands, automatic timed pass or -5 takeover penalty in this mode.
 - Ranking: most points, then fewer attacks, then more successful transfers; perfect ties share the win.
 - UI score displays remain numeric only. Documentation uses “points”.
@@ -27,7 +27,7 @@ The current arena is an **open-room movement preview**, bounded at X 1–31 / Z 
 ## Throwing and fairness
 
 - One-second grace after arrival before another ordinary throw of that alien.
-- For 2.5s after a transfer, the recipient cannot return that same alien to its immediate giver. Other recipients and the other alien use independent eligibility. Bots, Chaos, Symbiosis and UI availability respect this protection too.
+- For 2.5s after a transfer, the recipient cannot return that same alien to its immediate giver. Other recipients and the other alien use independent eligibility. Bots, Symbiosis and UI availability respect this protection too. Chaos preserves the existing protection when teleporting.
 - E / THROW requires a server-observed eligible astronaut within the 1.5m core. Nearly tied targets remain stable within 0.15m. After a valid core contact, a maximum 150ms window allows up to 0.2m extra distance to accommodate crossing/input latency; leaving the core never extends that window. A fresh distant target cannot use it. UI and throw validation use the same target selection, with seat ID breaking exact ties. Invisible target identity remains concealed. Each transfer needs a new explicit action; touching or holding E never generates automatic transfers. Ownership, current turn, arrival grace, immunity and double occupancy are rechecked even inside the edge window.
 - Base speed remains server-controlled at 3.2m/s for humans and bots. Heading must be finite and forward magnitude is clamped to 0–1. WASD/joystick diagonals cannot add speed. Unrefreshed movement expires after 0.4 seconds; stale sequence numbers are rejected.
 - A player cannot carry both aliens. The other holder and immune players are ineligible throw targets. Range/eligibility is rechecked on receipt, even when the UI was previously enabled. Rejected throws never consume a power or award points.
@@ -47,7 +47,7 @@ The current arena is an **open-room movement preview**, bounded at X 1–31 / Z 
 
 Prepare **three decks of three cards**, one per round, before matchmaking. The preview defaults to Freeze, Skip and Invisible in each round but permits all eight approved deck powers. This is not a persistent unlock/reward grant. Unused cards expire at takeover; the next planned deck replaces them.
 
-F / tapping the ready card activates only the queue head. Ordering never activates a power or restores a spent card. Current-round reordering remains available without pausing, except while armed Chaos irreversibly locks the queue until its next incoming redirect resolves. Future-round decks cannot change during the match. General is green and repeatable; each red Epic type can occupy only one slot per match; purple Rare powers appear only on the board.
+F / tapping the ready card activates only the queue head. Ordering never activates a power or restores a spent card. Current-round reordering remains available without pausing. Chaos resolves immediately and advances the queue; it does not arm an incoming redirect or lock ordering. Future-round decks cannot change during the match. General is green and repeatable; each red Epic type can occupy only one slot per match; purple Rare powers appear only on the board.
 
 | Card         | Tier        | Effect                                                                                                                                                  |
 | ------------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -55,7 +55,7 @@ F / tapping the ready card activates only the queue head. Ordering never activat
 | Skip         | General     | Immune to receiving either alien for 3s; keeps any alien already held.                                                                                  |
 | Invisible    | General     | Hidden for 10s except from Vacune. Blind throws can still hit.                                                                                          |
 | Hidden Watch | General     | Hide the selected alien holder's exact timer for 6s.                                                                                                    |
-| Chaos        | Epic        | Arm once; lock the queue until the next incoming alien redirects to a random eligible recipient.                                                        |
+| Chaos        | Epic        | Immediately teleport yourself to a random valid map position, potentially safer or more dangerous. Keep any carried alien and its timer.                |
 | Shadow       | Epic        | Five-second roaming decoy. A throw at it destroys it immediately and awards its owner a trap bonus; attacker keeps the alien.                           |
 | Symbiosis    | Epic        | Straight 5m throw along facing. First body only; misses consume the card but keep the alien.                                                            |
 | Vacune       | Epic        | Round-long Freeze/Echo protection, Invisible visibility and Shadow identification; does not block the original.                                         |

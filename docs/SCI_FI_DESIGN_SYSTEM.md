@@ -45,9 +45,9 @@ No generator runs inside the scene or CI. Runtime uses the supplied PNGs. The or
 
 ## Interaction states
 
-Available picker cards say AVAILABLE / TAP TO LOAD. Loading remains separate from activation. Loaded slots show LOADED / TAP TO ACTIVATE; active reactions remain visibly waiting for an incoming alien. Spent/locked controls have no active handler. A pending Chaos destination opens the target picker and does not activate the card.
+Pre-match preparation shows three round blocks with three numbered slots each, an explicit selected round/slot, General/Epic catalog tabs and whole-item pages with a thin cyan indicator. REPLACE edits only that slot; EARLIER/LATER changes its order. During a match there is one ordered queue and one ready card. Selecting/reordering does not activate; tapping the ready card or F does. Spent/locked controls have no active handler. Chaos teleports immediately with no target picker or queue lock. See [UI System](UI_SYSTEM.md) for current behavior; archived seated components are not the production UI.
 
-PASS stays centred, with reactions on the left and two slots on the right. A disabled PASS reads WAIT; an in-flight request reads SENDING…. Native client controls and device insets remain outside these hit areas; no blanket desktop interactable inset is added.
+THROW ALIEN stays centered, with reactions on the left and the single ready card/ORDER DECK on the right. Server-confirmed range, ownership and arrival determine availability; contact alone never transfers the alien. Native client controls and device insets remain outside these hit areas; no blanket desktop interactable inset is added. Instructions, expanded leaderboard and catalog use complete pages instead of thick native scene scrollbars.
 
 ## Motion
 

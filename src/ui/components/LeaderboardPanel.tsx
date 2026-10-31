@@ -4,6 +4,10 @@ import type { UiLeaderboardEntry } from '../state/uiState'
 import { UI_COLORS, UI_SPACING, UI_TYPE } from '../theme/tokens'
 import { Panel } from './Panel'
 import { SciFiSurface } from './SciFiSurface'
+import { PageNavigation } from './PageNavigation'
+import { pageWindow } from '../state/pagination'
+
+let leaderboardPage = 0
 
 interface LeaderboardPanelProps {
   entries: UiLeaderboardEntry[]
@@ -20,6 +24,7 @@ function rankingOrder(a: UiLeaderboardEntry, b: UiLeaderboardEntry): number {
 
 export function LeaderboardPanel({ entries, loading, compact, expanded = false }: LeaderboardPanelProps) {
   const rankedEntries = [...entries].sort(rankingOrder).slice(0, expanded ? 10 : compact ? 4 : 5)
+  const records = pageWindow(rankedEntries, leaderboardPage, expanded ? 4 : rankedEntries.length || 1)
 
   return (
     <Panel
@@ -74,9 +79,10 @@ export function LeaderboardPanel({ entries, loading, compact, expanded = false }
         </UiEntity>
       ) : (
         <UiEntity
-          uiTransform={{ width: '100%', flexGrow: 1, minHeight: 0, overflow: 'scroll', flexDirection: 'column' }}
+          uiTransform={{ width: '100%', flexGrow: 1, minHeight: 0, overflow: 'hidden', flexDirection: 'column' }}
         >
-          {rankedEntries.map((entry, index) => {
+          {records.items.map((entry, row) => {
+            const index = records.start + row
             const leading = index === 0
             return (
               <UiEntity
@@ -121,6 +127,16 @@ export function LeaderboardPanel({ entries, loading, compact, expanded = false }
           })}
         </UiEntity>
       )}
+      {!loading && rankedEntries.length ? (
+        <PageNavigation
+          id="world-ranking"
+          page={records.page}
+          count={records.count}
+          onPage={(page) => {
+            leaderboardPage = page
+          }}
+        />
+      ) : null}
     </Panel>
   )
 }

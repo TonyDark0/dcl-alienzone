@@ -1,206 +1,214 @@
 # DCL Alienzone
 
-> Current gameplay revision: [v6 Round Powers and Loadouts](../docs/ROUND_POWERS_AND_LOADOUTS.md). Three prepared round decks, board-only Turbo/Echo, random queue-locking Chaos, Shadow/Symbiosis/Vacune, activation points and 2.5s anti-return supersede the older card examples in this research/design snapshot. Retention, rewards and extra card diversity remain future work.
+Decentraland Creator Success — working V0 application GDD. Updated **2026-10-31** to the implemented **v6.1 running-tag** rules. This replaces the former seated-pass design; sitting remains only in the introduction. Detailed rules: [Game Rules](../docs/GAME_RULES.md) and [Round Powers and Loadouts](../docs/ROUND_POWERS_AND_LOADOUTS.md).
 
-Decentraland Creator Success Program — working V0 application GDD.
-
-> **Running pivot, 2026-10-29:** This application draft describes the previous seated design and is not ready for submission. The local server now runs a revised 30×15m open-room tag preview, centered on the existing room, with WASD / joystick movement, explicit nearby throws, +1 per accepted transfer/coin, ten shared coins per round, +1 untouched rounds, containment, delivered running clips and three starter powers. A local suit reveal zooms out before play; all three attack close-ups are shared, with local-only shake/red/tapping. See [current rules](../docs/GAME_RULES.md), [animation delivery](../docs/ANIMATION_CONTRACT.md) and the [not-yet-live progression proposal](../docs/PROGRESSION_PROPOSAL.md). Obstacle navigation, reward economy and native playtest evidence remain pending. Revalidate the core loop before revising the historical application claims below or publishing this draft.
-
-| Field                     | Answer                                                                                                                                                    |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Public experience title   | DCL Alienzone. Owner IP / Content Policy declaration: TBD. Name screening: not searched. Unresolved: title clearance and final asset-rights confirmation. |
-| Deployment target         | Decentraland World; exact DCL NAME and public visit URL: TBD. Approved scene layout: 3×2 (48×32m).                                                        |
-| Studio / team name        | DCL Alienzone project; GitHub owner: TonyDark0. Formal studio name: TBD.                                                                                  |
-| Date                      | 2026-10-25                                                                                                                                                |
-| Contact (Discord + email) | TBD. Public project contact: GitHub issues after repository publication.                                                                                  |
+| Field                   | Current status                                                                                                                                                                  |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public experience title | DCL Alienzone. Owner IP/content-rights declaration and title clearance: pending confirmation.                                                                                   |
+| Creator / repository    | TonyDark0 — [dcl-alienzone](https://github.com/TonyDark0/dcl-alienzone). Formal studio name and Discord/email: pending.                                                         |
+| Target                  | Decentraland World linked to the owner's DCL NAME. Exact NAME, verified visit URL and public deployment evidence: pending. A hypothetical deployment is not a verified release. |
+| Platforms               | Native desktop and mobile Explorer; mobile-first controls are implemented, hardware acceptance is pending.                                                                      |
+| Application stage       | V0 proposed, not awarded or agreed. See [readiness](STUDIO_READINESS.md) for prerequisites that remain open.                                                                    |
 
 ## 0. TL;DR
 
-| Field                    | Answer                                                                                                                                                                     |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Player promise           | You are an astronaut. Pass a baby alien to outscore the crew while live cards disrupt its route and its shared timer threatens possession.                                 |
-| Primary player           | For casual party-game players arriving alone or with friends in Decentraland, looking for short competitive sessions without movement or reflex-heavy controls.            |
-| Current status           | Playable local core loop with authoritative rules, bots, cards, astronaut animation and leaderboard integration. Public test World: TBD; no deployed vertical-slice claim. |
-| Requested round          | V0; first application proposed, not accepted or agreed.                                                                                                                    |
-| Live at end of the round | Players can enter the World, complete a three-round match alone with bots or with friends, understand the result, and rematch with saved human records.                    |
+| Field             | Answer                                                                                                                                                                                     |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Player promise    | Run through a spaceship, evade a baby alien, chase another astronaut to throw it away, and use a prepared card sequence to outscore the crew over three short rounds.                      |
+| Primary player    | Casual competitive party-game players arriving alone or with friends; one to eight humans, filled to eight participants with bots.                                                         |
+| Current build     | Local playable running-tag prototype: authoritative proxy movement, explicit proximity throws, three round decks, score coins, board powers, containment, results and saved human records. |
+| Requested support | A focused V0 validation cycle, not funding for an already-certified mobile release or an agreed V1 scope.                                                                                  |
+| Question to test  | Do new players understand the chase/throw interaction and voluntarily repeat it because other humans and card timing change their decisions?                                               |
+| Key uncertainty   | Immediate replay is plausible; next-day return and deeper progression remain unproven. Rewards, unlocks, skins and daily chests are proposals, not live features.                          |
 
 ## 1. Player Promise
 
-**One-line promise**
+**One-line promise:** Outrun the crew, pass a dangerous baby alien before its countdown expires, and use cards and shared pickups to finish three rounds with the most points.
 
-You are an astronaut. Pass a baby alien to outscore the crew while live cards disrupt its route and its shared timer threatens possession.
+**Familiar comparison:** Running hot potato with tactical cards. Unlike a seated passing circle, every non-holder can evade, collect coins, prepare a power or position for a chase.
 
-**One familiar comparison**
-
-Social hot potato with an off-turn card game: waiting players can still change what happens.
-
-**Why this game**
-
-The creator wants a complete, visually coherent mobile game inside Decentraland, not a technical demonstration. Fixed astronauts, a readable spaceship and a cute-to-angry alien make passing and punishment visible without relying on wearable combinations or facial animation.
-
-## 2. First Minutes & How to Play
-
-| Time                      | Player experience                                                                                                                                                                           |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0–5 seconds after control | You see Alienzone and Play New Match. You can join immediately without reading the optional instructions.                                                                                   |
-| 5–10 seconds              | You see a three-second entry countdown, then the crew standing and sitting. The camera is prepared behind the countdown. Gameplay begins after seating, not necessarily within ten seconds. |
-| 10–60 seconds             | You see the current holder and direction. You hold an alien, then tap PASS for points; cards let you affect play before your next turn.                                                     |
-| 1–3 minutes               | You experience three shared-timer rounds, visible attacks and a final ranking. More points win; nobody is eliminated.                                                                       |
-| 3–10 minutes              | You choose a rematch, adapt to a new hand and opponents, or compare saved human records in World Leaderboard.                                                                               |
-| Natural stopping point    | You finish the ranking, save your record and choose Main Menu or Rematch. A concrete next-day goal beyond rivalry is still TBD.                                                             |
-
-**Player-facing How to Play**
-
-- Hold, then pass before the alien attacks.
-- Risk later passes to earn more points.
-- Use cards to disrupt other players.
-
-The program's 5/10 comprehension rule is **not tested**. Joining is immediately available, but the seating sequence delays the first pass; test whether this harms comprehension before changing its approved presentation.
-
-## 3. Core Loop
-
-| #   | Step (verb) | Player input → feedback → state change                                                       | Why do it again?                                        |
-| --- | ----------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| 1   | Read        | Watch holders, direction and danger → visual cues → choose a risk and route.                 | Other people and cards change the next arrival.         |
-| 2   | Prepare     | Browse, load and activate a card → icon and caster announcement → defend or alter live play. | Timing matters even while another seat holds the alien. |
-| 3   | Risk        | Hold an alien for at least two seconds → danger grows → a later valid pass can score more.   | Balance higher points against being attacked.           |
-| 4   | Pass        | Tap PASS → alien travels and points appear → next eligible seat receives it.                 | Routing and active defenses change the next decision.   |
-| 5   | Regroup     | Watch the attack and ranking → see the outcome → begin another round or request a rematch.   | Learn opponents' tactics and challenge their result.    |
-
-| Field                                       | Answer                                                                                                                                                                         |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| One complete loop takes                     | A round starts with 28 seconds and can extend to at most 38, followed by a five-second attack sequence. Three rounds complete a match; scoring passes provide earlier payoffs. |
-| Decision, challenge, or expression          | Time a risky pass, prepare a defense, choose a Chaos destination, or intervene during another player's hold.                                                                   |
-| Shortest satisfying visit / typical session | One match, approximately two minutes / two to four minutes targeted; real device and user timings: TBD.                                                                        |
-| Why repetition 10 remains appealing         | Finite shuffled hands, one globally unique Echo recipient per round, changing routes and human decisions vary familiar content. Long-term appeal is not yet measured.          |
+**Why this game:** A recognizable low-poly astronaut cast and spaceship make the carried threat and social rivalry legible. No player is eliminated: being attacked produces a short containment challenge, then everyone continues until the third attack ends the match.
 
 **Pillars**
 
-1. Shared danger, readable punishment, no elimination.
-2. Meaningful choices while someone else holds the alien.
-3. Short mobile sessions, coherent art, one-button passing.
+1. Shared danger with readable ownership, explicit throws and a common deadline.
+2. Decisions while not holding the alien: evasion, positioning, coins and card timing.
+3. Short mobile-compatible matches, coherent presentation and immediate rematches.
+4. Equal authoritative movement and scoring rules for humans and bots.
 
-Exact scoring bands, tie-breakers and the six-card contract are maintained in [Game Rules](../docs/GAME_RULES.md) and the [illustrated card reference](../docs/CARDS_REFERENCE.md).
+## 2. First Minutes & How to Play
+
+| Phase                     | Player experience                                                                                                                                                                                                                         |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Arrival                   | The opaque home menu offers Play New Match, How to Play and World Leaderboard. Browsing does not occupy a match seat.                                                                                                                     |
+| Preparation, player-paced | Play opens three visible round blocks, each with three numbered card slots. Tap a slot, choose its replacement in the General/Epic catalog, and set order with Earlier/Later. Card 1 is first. Full-item pages replace native scrollbars. |
+| Entry                     | READY · FIND MATCH submits all nine cards for server validation. Empty seats become bots. An opaque three-second countdown prepares the actors and camera.                                                                                |
+| Visible introduction      | Your assigned suit appears in close-up, then the camera eases out during the standing/sitting sequence. The first-round deck gets a five-second order review. No alien fuse runs during preparation or the intro.                         |
+| Live round                | A random starter receives the original alien. Run/evade, use cards and collect coins. If carrying an arrived alien, approach an eligible astronaut and explicitly throw it. The shared 28-second fuse never resets on a transfer.         |
+| Takeover                  | When the original fuse expires, everyone sees a five-second close-up of its holder being attacked. Only that player gets shake, red pulses and five timed TAP targets. At least three hits earns one bonus point.                         |
+| Round continuation        | The first two attacks are contained regardless of TAP performance. Everyone remains in play. Leftover coins, pickups, effects and cards expire; the next planned deck and ten new coins enter the next round. Positions carry forward.    |
+| Results                   | The third attack ends the match, still allowing its containment bonus. Rank by points, then fewer attacks, then more successful transfers; perfect ties share the win. Save human records and offer Rematch/Main Menu.                    |
+
+**Player-facing instructions**
+
+- Move with WASD or the mobile joystick. Run away from carriers; chase someone if you hold an alien.
+- Get within 1.5m and press E / tap THROW ALIEN. Touching alone never transfers it.
+- Press F / tap the ready card to use it. Reorder the current deck without pausing.
+- Touch coins and purple board powers to collect them. Finish three rounds with the most points.
+
+Q is not an exposed input in the installed SDK; F is the owner-approved card key. The throw button only enables for an arrived alien and a server-confirmed eligible nearby target. A one-second arrival grace prevents instant rethrows. That alien's immediate giver is protected against its return for 2.5s; this is not global immunity. One astronaut cannot carry both aliens.
+
+The tracked drone keeps a fixed world heading at a nominal 60° angle, centered on the local astronaut. It does not rotate with the suit. All three takeover close-ups are shared, returning to each player's tracked view when play resumes.
+
+**Comprehension evidence:** The owner has tested local desktop previews. Cold-player understanding of preparation, movement, throws and scoring has not been measured. The deck builder plus intro creates an onboarding risk; do not claim an observed time-to-first-action.
+
+## 3. Core Loop
+
+| Step                  | Input → feedback → change                                                                                                          | Why repeat?                                                             |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Read and position     | See holders, danger, nearby pickups and opponents → choose pursuit, evasion or collection → move through the 30×15m area.          | Humans, visible threats and seeded pickups change routes.               |
+| Prepare and intervene | Reorder the remaining queue or activate its head → icon/name/caster announcement and effect feedback → change the immediate chase. | Counterplay and the cost of using a finite card make timing matter.     |
+| Chase and throw       | Reach an eligible target and press E / tap THROW → alien transfer and +1 → ownership changes, shared fuse does not.                | Escape danger or create a new pursuit without automatic contact passes. |
+| Collect               | Touch a shared coin or board power → pickup disappears for everyone → +1 and, for powers, its effect.                              | First contact wins; chasing a pickup can expose you to the alien.       |
+| Contain and regroup   | Watch the attack; the victim taps timed targets → optional +1 → next round, or final ranking and rematch.                          | Keep all players involved and make outcomes visible.                    |
+
+**Scoring in this build**
+
+| Event                                                  | Points                                            |
+| ------------------------------------------------------ | ------------------------------------------------- |
+| Successful original or Echo transfer                   | +1 to its outgoing holder                         |
+| First server-confirmed coin contact                    | +1 to the collector                               |
+| Accepted card or board-power activation                | +1 once                                           |
+| Entire round without receiving either alien            | +1 at takeover; starting holders count as touched |
+| Victim hits at least three of five containment targets | +1 once, including the final attack               |
+| A valid attempted throw into your Shadow decoy         | +1 extra to the decoy owner                       |
+
+There are no danger-band points, two-second scoring hold, automatic pass or takeover score deduction. Merely holding, preparing/reordering cards and rejected/repeated actions award nothing. Symbiosis can earn its activation point plus a successful transfer point; Chaos teleportation is not a transfer. Score UI displays numbers only.
+
+Exactly ten shared coins spawn at each round start, thirty per match and never more than ten at once. Collected coins do not respawn. Leftovers disappear at takeover without value. Coins are match points, not spendable or persistent currency.
+
+Each live round lasts 28 seconds plus a five-second attack. Three rounds plus entry/intro/setup take approximately two minutes before player-paced deck preparation, loading, network waits and result browsing. Typical sessions target 2–4 minutes; observed device/user timings are pending.
+
+### Prepared decks and powers
+
+Before matchmaking, prepare **three ordered decks of three cards**, one per round. General cards may repeat, including within a round; each Epic type may occupy only one of the nine slots. Future decks are fixed after entry. Unused current-round cards are discarded, not saved. Rematch reuses the submitted plan; Main Menu permits editing.
+
+The preview defaults to Freeze/Skip/Invisible for each round but allows all eight approved deck powers. This is a testing catalog, not a persistent ownership or unlock grant. Only the queue head activates, with a shared 1.2s cooldown. Live reordering never pauses play.
+
+| Category                  | Card         | Implemented effect                                                                                                                                                                                                   |
+| ------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| General · green           | Freeze       | Slow other non-vaccinated astronauts and their running animation to 50% for 2s. The alien clock continues. Against Turbo, cancel to normal speed without slowing that hit.                                           |
+| General · green           | Skip         | Immunity to incoming aliens for 3s; does not remove one already carried.                                                                                                                                             |
+| General · green           | Invisible    | Hide yourself for 10s except from Vacune users. The owner sees a ghost. Not immunity: a blind nearby throw can still hit.                                                                                            |
+| General · green           | Hidden Watch | Hide the selected alien holder's exact timer for 6s; danger feedback remains.                                                                                                                                        |
+| Epic · red                | Chaos        | Immediately teleport yourself to a random valid point. It may be safer or more dangerous. Keep any carried alien, timer and effects. Consume immediately and advance the queue; no target picker or lock.            |
+| Epic · red                | Shadow       | Spawn a roaming suit/name decoy for 5s. A valid attempted throw at it destroys it and grants the owner the trap bonus; attacker keeps the alien. Otherwise it blinks and fades on expiry.                            |
+| Epic · red                | Symbiosis    | With an arrived alien, fire straight along your facing up to 5m. The first body stops the shot. A valid recipient receives the alien; a miss or blocked first body consumes the card but leaves ownership unchanged. |
+| Epic · red                | Vacune       | For the rest of the round, resist Freeze and incoming Echo, see invisible astronauts and identify decoys. Does not protect against the original or remove a held alien.                                              |
+| Rare · purple, board only | Turbo        | One random appearance per round. Contact gives 2x movement/animation until takeover or a cancelling Freeze. A later Freeze can slow normally.                                                                        |
+| Rare · purple, board only | Echo         | One random appearance in one random round per match. Contact spawns a transferable second alien on another eligible astronaut, not the collector or original holder. Same fuse and transfer points; never attacks.   |
+
+Rare powers never enter decks and do not replace coins. They auto-activate on authoritative contact and expire uncollected at takeover, without respawning. If Echo has no eligible recipient, it stays unconsumed until activation becomes possible or the round ends. Echo vanishes at takeover; each next round begins with only the original. See the [v6.1 contract](../docs/ROUND_POWERS_AND_LOADOUTS.md) for protection, visibility and collision edge cases.
 
 ## 4. Why Players Come Back
 
 ### 4.1 The next-day (D1) sentence
 
-A player who enjoyed their first session may return the next day to beat a recognizable friend's saved record and challenge that friend again, anticipating this from the named leaderboard and shared match. This is a **rivalry hypothesis**, not a scheduled reward or demonstrated D1 mechanism; cold-player validation and a stronger concrete return trigger are TBD.
+A player who enjoyed a match may return to challenge a recognizable friend, beat their saved score and try a different deck order against that person's tactics. This is a **rivalry/mastery hypothesis**, not demonstrated next-day retention. An immediate rematch is not evidence of returning tomorrow.
 
 ### 4.2 The progression chain
 
-Repeatable action → saved best score / wins → visible competitive status → a new tactical target. This supports mastery and rivalry, but does not yet provide deeper persistent progression.
+Repeatable chase/throw/card decisions → improved play and a saved score/win record → visible competitive status → another tactical challenge. This supports mastery but currently grants no deeper persistent capability.
 
-| Moment                                    | What persists or has been built?                                | What becomes possible next?                                | How can another player tell?                                    |
-| ----------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------------------- |
-| End of first session                      | Human best match score and wins.                                | Chase a record or rematch a recognized opponent.           | Named World Leaderboard.                                        |
-| End of first week                         | Improved records, remembered opponents and card knowledge.      | Better timing and counterplay; no new unlocked ability.    | Records are visible; tactical learning is demonstrated in play. |
-| Week 3+ — what takes more than two weeks? | TBD: a lasting social/progression goal beyond the same records. | TBD; no economy, unlock track or daily system is approved. | TBD.                                                            |
+| Moment               | Current continuity                                       | Missing evidence / proposed future work                                       |
+| -------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| End of first session | Human best score and wins; ranking and rematch.          | Deployed persistence and voluntary rematch observations.                      |
+| End of first week    | Familiar names, improved routes/card timing and records. | Actual return visits and the reason for them; no live reward track.           |
+| Week 3+              | No validated long-term progression loop.                 | Test whether rivalry is sufficient before agreeing any new retention feature. |
 
-You return and compare your saved record with familiar names. You try a different card timing against someone you remember. Your moves improve, but the build grants no new capability after a week; this is an acknowledged design gap, not a claimed progression feature.
+Card unlocks, astronaut skins, lifetime milestones, seven-day rewards and chests are documented in the [Progression Proposal](../docs/PROGRESSION_PROPOSAL.md). They are not active inventory, currency, claims or promised release dates. No daily economy is implied by coin collection.
 
 ### 4.3 Two return hooks
 
-| Selected hook                           | Exact trigger or timing                                                                           | What the player anticipates                                       | Reminder channel + no-reminder fallback                                                                                                |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Persistent named leaderboard rivalry | Check the saved board after a match or on a later visit; no daily reset or automated rival alert. | Improve a record against a familiar person.                       | No custom notification; remember the person and compare the board. D1 effectiveness: TBD.                                              |
-| 2. Social rematch with a fresh hand     | A completed three-round match offers Rematch; another visit provides another shuffled hand.       | Try counterplay with friends rather than repeat a fixed solution. | Voluntary friend invitation; bots support practice if friends are absent. This is replay variation, not a guaranteed tomorrow trigger. |
+| Hypothesis                                        | Trigger                                                                     | What is anticipated                                             | Current limitation                                                                                           |
+| ------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Named leaderboard rivalry                         | Compare saved human records after a match or later visit.                   | Beat a recognizable rival.                                      | No daily reset or rival alert; D1 effectiveness is unmeasured.                                               |
+| Rematch with a revised plan and human counterplay | Rematch preserves the plan; returning to Main Menu lets the player edit it. | Try a different answer to an opponent's pursuit or card timing. | Replay variation is not a guaranteed next-day trigger; bots support practice, not proof of social retention. |
 
-Before proposing additional progression, agree the smallest justified change with the owner and Creator Success. This document does not authorize adding features outside [Scope](../docs/SCOPE.md).
+No unlock/reward system is added just to fill an application section. Agree the smallest testable next step with the owner and program if these hypotheses fail.
 
 ## 5. Social by Design
 
-| Lens                                  | Design and current evidence                                                                                                                                                                                                                                                                                                   |
-| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The repeatable social loop            | A passes toward B → B voluntarily prepares a defense or intervenes → their actions change who holds the alien and earns points → a visible attack and shared ranking invite another contest.                                                                                                                                  |
-| The disappearance test                | Bots preserve the rules, but human bluffing, grudges, deliberately chosen rivals and shared reactions disappear. The mechanical loop survives; its social meaning does not.                                                                                                                                                   |
-| From strangers to a group             | Play joins one table during the entry countdown; names, holders, direction and card feedback identify participants. No voice is required. Clear first-time comprehension: not tested.                                                                                                                                         |
-| Recognition & continuity              | Names appear above astronauts and in results. Saved human records support recognition; persistent crews, relationship tracking and rival alerts are not implemented.                                                                                                                                                          |
-| Quiet hours & player counts           | One human practices timing and card combinations against seven bots. Two humans enable intentional social counterplay; four to eight are the intended group, with eight total seats. Owner has tested desktop solo-plus-bots locally; controlled multi-human/mobile results: TBD. No guaranteed human-arrival service exists. |
-| Drop-in / drop-out                    | New players join before play begins; there is no mid-round seat takeover by a new human. Disconnected humans become bot-controlled; returning owners can recover their existing seat. Late-arrival guidance, full-table behavior and deployed reconnects need validation.                                                     |
-| Visible play (the bystander test)     | A participating player sees an alien being passed until it attacks a holder; the opaque lobby is not an external spectator experience.                                                                                                                                                                                        |
-| Shareable play (the memorable moment) | A prepared defense sends the alien back just before expiry and the intended attacker suffers the takeover instead.                                                                                                                                                                                                            |
-| Bring-a-friend                        | After a friend survives your targeted pass, invite a rematch. Their counterplay makes the next hand personal instead of just another bot simulation.                                                                                                                                                                          |
+| Lens                      | Design and evidence                                                                                                                                                                                    |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Repeatable social loop    | A chases B → B evades, protects themselves or deploys a decoy → a throw succeeds or fails → another chase and a shared result invite a rematch.                                                        |
+| Disappearance test        | Bots preserve the mechanics, but human bluffing, remembered opponents, deliberately chosen pursuit and shared reactions disappear. Human benefit needs observation.                                    |
+| From strangers to a group | Up to eight seats share a match, visible names/suit colors, holders, effects and ranking. Voice/chat are optional native DCL tools, not required custom systems.                                       |
+| Quiet hours               | One human plays with seven bots. Humans and bots have the same 3.2m/s base speed, effect multipliers, proximity checks and scoring. Bots use open-room steering, not obstacle navigation.              |
+| Intended group            | Two humans allow direct counterplay; four to eight are the desired group. Local solo-plus-bots has been owner-tested; controlled multi-human/mobile results remain pending.                            |
+| Continuity                | Save human records. Persistent crews, relationship tracking and rival notifications are not implemented.                                                                                               |
+| Drop-in / drop-out        | Seats join before play; no new human takes over a seat mid-round. Disconnected seats become bots and their returning owners can recover them. Deployed reconnect/full-table behavior needs validation. |
+| Bystander                 | Participants share attacks and results; the opaque home menu is not an external spectator experience.                                                                                                  |
+| Memorable moment          | A pursuer commits to a Shadow clone while its owner escapes, or Chaos escapes one chase but lands beside another carrier. These are designed possibilities, not recorded player testimonials.          |
+| Bring a friend            | Challenge a known player and adjust the next deck to their tactics; verify that players actually choose to do so.                                                                                      |
 
 ## 6. Mobile-First
 
-| Core-loop verb | Touch controls                                                                                        |
-| -------------- | ----------------------------------------------------------------------------------------------------- |
-| Read           | Inspect holder labels, numeric scores and compact danger/direction HUD; drag to orbit the arena.      |
-| Prepare        | Tap a card category, choose a card, then tap the loaded slot; Chaos also requires a player selection. |
-| Risk           | Keep holding; no continuous press, movement input or auto-pass is required.                           |
-| Pass           | Tap the main bottom-centre PASS button.                                                               |
-| Regroup        | Tap Rematch or Main Menu after results; optional emoji reactions use separate touch buttons.          |
+| Verb               | Touch                                                                                 | Desktop                                         |
+| ------------------ | ------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Move / aim         | Native joystick; normalized direction and quick turning.                              | Screen-relative WASD; no cursor-aim dependency. |
+| Throw              | Explicit THROW ALIEN button when an eligible target is near.                          | E; contact alone does nothing.                  |
+| Prepare            | Tap one of nine pre-match slots, replace and reorder it; whole-item catalog pages.    | Same pointer interactions.                      |
+| Activate / reorder | Tap the single ready card or ORDER DECK; movement/game clock continue.                | F activates; pointer changes order.             |
+| Contain            | Tap the victim-only timed targets; visible sent/hit/miss feedback, no hover required. | Pointer click with optional hover feedback.     |
+| Regroup            | Tap Rematch/Main Menu or optional emoji reactions.                                    | Same pointer interactions.                      |
 
-**UI plan**
+**UI:** Bottom-center throw action, reactions to the left and one ready card plus queue control to the right. Top HUD exposes round, danger and numeric score; a latest-only 0.9s top-right notification identifies activated powers/casters. Three deck blocks, explicit selection context and whole-item pages replace thick native scene scrollbars. Device insets apply once; native DCL account/chat/settings remain native.
 
-The primary action is central at the bottom, emoji reactions on its left and two card slots on its right. Compact top HUD, optional instructions and responsive menus must leave native Decentraland controls accessible; no duplicated account, audio or graphics settings.
+**Performance targets, not certification:** 30 fps on a named mobile device/client and 60 fps on recommended desktop hardware. Record device/OS/client, load time, frame pacing, input latency and memory through a match and repeated rematches. Profile the eight-player/Shadow peak, transparency and UI around native controls. Actual device measurements are pending.
 
-**Performance**
-
-Targets: 30 fps on a named mobile device/client and 60 fps on recommended desktop hardware with eight occupied seats. Device models, OS/client versions, geometry totals for the latest astronaut exports, frame times and memory results: TBD. Validate one human plus seven bots and an eight-human session; do not infer performance from a successful build.
-
-**Desktop-only dependencies**
-
-The design requires no keyboard, custom shader or VAT. Native mobile support for the current camera, skeletal blending, UI alpha, audio and authoritative-server SDK build is an unverified dependency until tested. If a cosmetic feature fails, preserve cards, readable passing and scoring without that cosmetic feature; do not claim cross-client parity from desktop tests.
+**Technical limits:** Six approved parcels (3×2, 48×32m); movement is a centered 30×15m open room, X 1–31 / Z 8.5–23.5. The controller does not infer obstacles from GLB colliders. No new map divisions, portals, custom shader, VAT or external backend is claimed. Authoritative-server/camera/audio/blending support needs native mobile testing; compilation is not platform acceptance.
 
 ## 7. World, Look & Story
 
-**Story / world**
+**Story:** A baby alien has hatched aboard the spaceship. The crew tries to avoid its attacks while competing for the highest score across three rounds. The first two takeovers are contained; the third ends the match. Holding longer does not increase points.
 
-A baby alien hatches inside the spaceship and wants to control the crew. Pass it away before it attacks, but risk holding longer to finish three rounds with the highest score.
+**Look:** Eight colored low-poly astronaut proxies share a spaceship and a standing/sitting introduction before running play. Authored in-place running/carrying loops are integrated. A suit-reveal zoom identifies the local astronaut; the tracked drone supports pursuit and lateral attack close-ups make consequences visible. Sci-fi notched frames, gradients, transparent reaction/power art and numeric feedback form the UI language.
 
-**Visual direction**
-
-Eight low-poly astronauts sit around the broken egg in a matte, solid-colour spaceship. One atlas and three authored material roles unify assets; cute idle and angry attack silhouettes make the alien's state legible. Screen-level signature: a circular crew, a tiny carried creature, and a close side-view takeover. Production alien/egg/VFX are still pending; concept art is not evidence of final in-engine quality.
+**Known presentation gaps:** The agreed production alien/egg/takeover-VFX exports are incomplete; the missing alien uses existing reaction art as a carrier marker. Several powers temporarily reuse icons, and match music has a lobby-loop fallback. Freeze uses an atlas-preserving chilled material; Invisible uses an owner-only ghost. Final assets, blending, alpha sorting and touch readability still require native review. Concept art and tests are not evidence of final render quality.
 
 ## 8. Audience & Comparables
 
-**Primary player + arrival context**
+**Audience:** Casual competitive party-game players who enjoy short movement-based pursuit with tactical powers, alone for practice or together for social counterplay. Not a deep RPG, parkour campaign, token economy or paid-power game.
 
-For casual party-game players arriving alone or with friends in Decentraland, looking for short competitive sessions without movement or reflex-heavy controls.
+**First group:** Invite a small group to the test World for a scheduled observation session. No Discover placement, organic acquisition, event attendance or return rate is promised.
 
-**How the first group arrives**
+| Comparable                           | Creator observation                                                                                                                       | Lesson for Alienzone                                                                                   |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Shroom Zom — 8/10                    | Strong atmosphere and musical-platform puzzle; triggering/reset feedback and a next-day motive were unclear.                              | Make throws, pickups and state changes legible; clever interactions alone do not establish retention.  |
+| Old McTiger's Farm — 2/10            | Onboarding and spending/progression were unclear; inventory/shop appeared unavailable during the visit, and art styles felt inconsistent. | Avoid dead-end menus, explain what points achieve and maintain coherent assets.                        |
+| Antrom RPG / Dice Masters — 7/10     | Skippable voiced lore, players, daily systems and crafting; dense menus and UI overlaps increased effort.                                 | Keep the optional tutorial readable and distinguish visible return motivation from measured retention. |
+| Traditional hot potato / running tag | A visible threat and deadline explain pursuit; instant elimination and idle waiting can sideline friends.                                 | Keep all players through three attacks; use movement, cards and collection during non-holder time.     |
 
-The owner invites a small group to the published World for an agreed playtest, reaching the two-human social threshold together. Discover/Event packaging can follow release, but no placement, event schedule or acquisition result is promised.
-
-**Deliberately not for**
-
-Players seeking free-roaming parkour, a deep RPG economy or purchasable competitive advantages.
-
-### Comparables
-
-| Lens                                              | Comparable A — Antrom RPG / Dice Masters, Decentraland                                                               | Comparable B — hot potato, traditional party game                                        |
-| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| What we observed works                            | Owner reports a skippable voiced lore introduction, active users and visible daily reasons to return.                | A visible object, passing and a shared deadline make risk understandable.                |
-| What does not fit our audience or context—and why | Dense menus and crafting add onboarding cost; our short sessions need fewer systems.                                 | Waiting for a turn leaves little agency; instant elimination sidelines friends.          |
-| What we will do differently                       | Keep the optional tutorial compact, maintain a coherent astronaut cast and test touch layout before expanding scope. | Off-turn cards, an optional scoring-only Echo and no elimination keep everyone involved. |
-
-Observations are qualitative, not competitor analytics. See [research notes](PLAYTEST_NOTES.md).
+These are the owner's qualitative observations, not competitor analytics or independent asset judgments. Featured eligibility, exact play durations, 90-minute total and second-day visits are not fully confirmed. See [research notes](PLAYTEST_NOTES.md); do not fabricate missing records.
 
 ## 9. 4 Week Plan (v1 scope)
 
-Requested support is **V0**. The plan below is a proposed four-week polishing/validation slice from the existing prototype, not an agreed V1 award or contract. Calendar dates and accepted deliverables: TBD with Creator Success. The application test World is a prerequisite, not a promised grant-funded substitute for applying.
+The template heading is retained, but the requested round is **V0**. This is a proposed sequence of questions from the existing prototype, not an agreed four-week V0 contract or V1 award. Scope, dates and deliverables must be agreed with Creator Success. Publish and verify the application test World before submitting; this plan does not substitute for that prerequisite.
 
-| Week                                                   | What is playable / done                                                                                                                                                                      |
-| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 — Prototype definition                               | Validate the application test World, freeze the current rules and observe first-time users; agree the V0 slice and investigate the return/progression gap without adding unapproved systems. |
-| 2 — Core interaction + first-group test                | Validate a solo match and a two-to-eight-human group, card targeting, Echo collisions, disconnect continuity and record persistence.                                                         |
-| 3 — Core systems refinement                            | Integrate approved final alien/egg assets, check animation and audio, and resolve mobile layout/performance problems using the real eight-seat scene.                                        |
-| 4 — Playable release, including testing and deployment | Complete mobile/desktop regression and World redeployment, verify visit links, record known limitations, and review continuation/return evidence.                                            |
+| Stage             | Question                                                                                               | Smallest test and decision evidence                                                                                                                                            |
+| ----------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1 — Comprehension | Can new players prepare three round decks, move, throw and explain scoring without live coaching?      | Observe a small cold-player group, recording prompts needed, first valid throw, rejection confusion and a score explanation. Fix communication issues before adding mechanics. |
+| 2 — Social loop   | Do human pursuit, deception and powers cause meaningful choices and voluntary rematches?               | Observe a multi-human session against solo/bot baseline, plus Echo, Chaos, anti-return and disconnect cases. Record actual decisions and rematches, not only opinions.         |
+| 3 — Return        | Does a saved rival/record or a revised deck motivate an actual later visit?                            | Invite a follow-up without promising rewards; record who returns, what they seek and whether it occurs without prompting. D1 evidence is distinct from same-session replay.    |
+| 4 — Delivery      | Does the same core interaction remain readable and responsive in the deployed World on desktop/mobile? | Test loading, full matches, repeated navigation/rematches, server restart/persistence and peak effects. Record device data, failures and known limitations.                    |
 
-**What keeps the experience changing after launch**
+**Scoring question:** Does rewarding coins and accepted activations support the chase, or let players ignore the alien and farm easier points? Observe behavior before proposing another score change. The GDD updates no rule.
 
-- Variation comes from shuffled finite hands, the unique round Echo recipient and human decisions; no new map or content cadence is promised.
-- If an update is skipped, opponent choices and risk timing still vary each match.
-- N/A: no power progression or scheduled progression reset; new players receive equal gameplay rules immediately.
-- If players rematch voluntarily but never return later, revisit the documented retention hypothesis before adding content.
+**Continuation signals:** Unprompted repeated loops, intentional counterplay, understanding of ownership/range, and a specific goal on return. No numeric program-pass threshold or retention result is claimed. Proposed observation records live in [Metrics](../docs/METRICS.md).
 
-**Not building in v1**
+**Not building without a new scope decision:** Live rewards/unlocks, shop/currency, wearable-gated powers, portals, divided-map navigation, more cards, external matchmaking or paid advantages. Final presentation work remains subject to asset review and device budgets.
 
-VAT/custom shaders, external backend, multi-table cross-realm matchmaking, daily economy/progression, wearable-gated powers and extra card types are deferred outside the approved MVP. No v2 restoration is committed. Standing non-goal: paid competitive advantages, because equal rules support readable social competition.
+**Top risk and fallback:** The game may produce enjoyable immediate rematches without a credible next-day goal. If observed, agree one small social/progression experiment with the owner and program rather than hiding the gap behind more content. Native mobile performance and deployed human/persistence behavior remain technical release gates.
 
-**Top risk + fallback**
-
-The main product risk is that random hands and records create immediate rematches but no compelling later return. Test that openly; if it fails, agree one small social/status return mechanism with the owner and program before implementation rather than disguising a score increase as progression. Technical release gates remain mobile support and World server/persistence validation.
+**Submission status:** Mechanic documentation is current, not a claim of application completion. Confirm contact/age/content rights, genuine research visits, reviewer access, the deployed World link and real playtest evidence before submission. No deployment or application is performed by updating this repository.

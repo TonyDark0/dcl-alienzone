@@ -21,7 +21,14 @@ import { planChaseBot, roundStarter, type BotPlanMemory } from '../rules/chaseBo
 import { createRoundCoins, resolveCoinContacts } from '../rules/chaseCoins'
 import { nearbyThrowTarget, type RecentThrowTarget } from '../rules/throwProximity'
 import { botLoadout, handForRound, validateLoadout, type MatchLoadout } from '../rules/loadouts'
-import { createRoundPowers, firstPowerCollector, forwardHit, moveShadow, type ShadowDecoy } from '../rules/roundPowers'
+import {
+  chaosDestination,
+  createRoundPowers,
+  firstPowerCollector,
+  forwardHit,
+  moveShadow,
+  type ShadowDecoy
+} from '../rules/roundPowers'
 
 const yes = (): ActionResult => ({ accepted: true, reason: '' })
 const no = (reason: string): ActionResult => ({ accepted: false, reason })
@@ -36,11 +43,11 @@ export class ChaseMatchEngine extends MatchEngine {
   private throwTargets = new Map<AlienId, RecentThrowTarget>()
   private loadouts = new Map<SeatId, MatchLoadout>()
   private returnProtection = new Map<AlienId, { giver: SeatId; receiver: SeatId; turn: number; until: number }>()
-  private pendingChaos = new Set<AlienId>()
+  private chaosCasts = 0
 
   constructor(seed = 1, matchId = `chase-${seed}`, unlocked: readonly ChaseCardType[] = STARTER_CARDS) {
     super(seed, matchId)
-    this.state.rulesVersion = '6.0-round-loadouts-and-powers'
+    this.state.rulesVersion = '6.1-chaos-teleport'
     this.state.arena = {
       players: this.state.seats.map((seat) => initialChasePlayer(seat.id)),
       coins: [],
@@ -81,7 +88,6 @@ export class ChaseMatchEngine extends MatchEngine {
     this.recentRecipients.clear()
     this.throwTargets.clear()
     this.returnProtection.clear()
-    this.pendingChaos.clear()
     // Discard the entire previous round; never carry unused cards or legacy Echo grants.
     for (const seat of s.seats) {
       if (s.round > 1) seat.hand = handForRound(this.loadouts.get(seat.id)!, s.round, `${s.matchId}-${seat.id}`)
@@ -180,7 +186,6 @@ export class ChaseMatchEngine extends MatchEngine {
     }
     if (target === undefined) return no('Move closer to an eligible astronaut.')
     this.transfer(alien, target)
-    this.resolveChaos(alien)
     return yes()
   }
 
@@ -242,7 +247,6 @@ export class ChaseMatchEngine extends MatchEngine {
     })
     holder.touchedThisRound = true
     s.echoUsedThisRound = true
-    this.resolveChaos(s.aliens[s.aliens.length - 1])
     return true
   }
 
@@ -298,7 +302,6 @@ export class ChaseMatchEngine extends MatchEngine {
       turn: alien.turn,
       until: s.now + CHASE_CONFIG.returnProtectionSeconds
     })
-    this.pendingChaos.delete(alien.id)
     alien.readyAt = s.now + CHASE_CONFIG.arrivalGraceSeconds
     alien.heldSince = s.now
     s.arena!.players[target].touchedThisRound = true
@@ -308,33 +311,10 @@ export class ChaseMatchEngine extends MatchEngine {
     return true
   }
 
-  /** Random, bounded redirects respect immunity, occupancy and anti-return protection. */
-  private resolveChaos(alien: AlienState) {
-    for (let hop = 0; hop < this.state.seats.length; hop++) {
-      const seat = this.state.seats[alien.holderSeatId]
-      const card = seat.hand.find((candidate) => candidate.type === 'CHAOS' && candidate.state === 'ACTIVE')
-      if (!card) {
-        this.pendingChaos.delete(alien.id)
-        return
-      }
-      const choices = this.state.arena!.players.filter((player) => this.eligibleTarget(alien, player.seatId))
-      if (!choices.length) {
-        this.pendingChaos.add(alien.id)
-        return
-      }
-      card.state = 'SPENT'
-      seat.chaosTargetSeatId = undefined
-      this.transfer(alien, this.pick(choices).seatId)
-      armFirstCard(seat.hand)
-    }
-  }
-
   orderDeck(seatId: SeatId, cardIds: string[]): ActionResult {
     if (this.state.phase !== 'DECK_SETUP' && !this.active()) return no('Deck ordering is locked now.')
     const seat = this.state.seats[seatId]
     if (!seat) return no('Invalid astronaut.')
-    if (seat.hand.some((card) => card.type === 'CHAOS' && card.state === 'ACTIVE'))
-      return no('Chaos locks your deck until it redirects an incoming alien.')
     const queue = queuedCards(seat.hand)
     if (
       cardIds.length !== queue.length ||
@@ -363,12 +343,11 @@ export class ChaseMatchEngine extends MatchEngine {
       card.id,
       ...queue.filter((other) => other !== card).map((other) => other.id)
     ])
-    if (result.accepted && card.type === 'CHAOS' && target !== undefined) card.targetSeatId = target as SeatId
     return result
   }
 
   chooseCardTarget(_seatId: SeatId, _cardId: string, _target: number): ActionResult {
-    return no('Chaos chooses a random eligible recipient; target selection is no longer supported.')
+    return no('Chaos teleports its user immediately; it has no target selection.')
   }
 
   activate(seatId: SeatId, cardId: string, targetId: AlienId): ActionResult {
@@ -376,18 +355,26 @@ export class ChaseMatchEngine extends MatchEngine {
     const s = this.state
     const seat = s.seats[seatId]
     const card = seat?.hand.find((candidate) => candidate.id === cardId)
-    if (seat?.hand.some((other) => other.type === 'CHAOS' && other.state === 'ACTIVE'))
-      return no('Chaos is armed and cannot be cancelled.')
     if (!card || card.state !== 'ARMED' || queuedCards(seat.hand)[0] !== card || !isChaseCard(card.type))
       return no('Only the first card in your deck can activate.')
     if (!this.unlocked.get(seatId)?.includes(card.type)) return no('This card has not been unlocked.')
     if (s.now < seat.interventionReadyAt) return no('Wait a moment before activating another power.')
     const player = s.arena!.players[seatId]
     if (card.type === 'CHAOS') {
-      if (seat.hand.some((other) => other.type === 'CHAOS' && other.state === 'ACTIVE'))
-        return no('Your previous Chaos is still active.')
-      card.state = 'ACTIVE'
+      const destination = chaosDestination(s.seed, this.chaosCasts, player, [
+        ...s.arena!.players.filter((other) => other.seatId !== seatId),
+        ...(s.arena!.shadows ?? [])
+      ])
+      if (!destination) return no('No valid teleport destination is available.')
+      this.chaosCasts++
+      player.x = destination.x
+      player.z = destination.z
+      player.teleportRevision = (player.teleportRevision ?? 0) + 1
+      this.botPlans.delete(seatId)
+      this.throwTargets.clear()
+      card.state = 'SPENT'
       card.targetSeatId = undefined
+      this.updateThrowTargets()
     } else if (card.type === 'TURBO' || card.type === 'DUPLICATE') {
       return no('This power is a board pickup, not a deck card.')
     } else if (card.type === 'FREEZE') {
@@ -447,7 +434,7 @@ export class ChaseMatchEngine extends MatchEngine {
         endsAt: s.now + 0.35
       })
       if (hit?.shadow) this.hitShadow(alien, hit.shadow)
-      else if (hit && this.transfer(alien, hit.seatId)) this.resolveChaos(alien)
+      else if (hit) this.transfer(alien, hit.seatId)
       card.state = 'SPENT'
     }
     seat.interventionReadyAt = s.now + 1.2
@@ -481,8 +468,7 @@ export class ChaseMatchEngine extends MatchEngine {
       s.seats[claim.seatId].heat++
       this.emit('COIN', 'ORIGINAL', [claim.seatId], 1, `${s.seats[claim.seatId].displayName}: +1`)
     }
-    // Merely touching never transfers an alien. Chaos is the explicit card exception.
-    for (const alien of s.aliens) if (this.pendingChaos.has(alien.id)) this.resolveChaos(alien)
+    // Merely touching never transfers an alien. Teleportation is not a transfer either.
     for (const shadow of s.arena!.shadows ?? []) moveShadow(shadow, s.seed, seconds, s.now)
     s.arena!.shadows = (s.arena!.shadows ?? []).filter((shadow) => shadow.endsAt > s.now)
     s.arena!.shots = (s.arena!.shots ?? []).filter((shot) => shot.endsAt > s.now)
@@ -578,7 +564,7 @@ export class ChaseMatchEngine extends MatchEngine {
               : candidate.type === 'TURBO'
                 ? !!held || danger
                 : candidate.type === 'CHAOS'
-                  ? !held && danger
+                  ? danger || (!!held && s.fuseEndsAt - s.now < 8)
                   : candidate.type === 'DUPLICATE'
                     ? !s.echoUsedThisRound && s.fuseEndsAt - s.now > 6
                     : candidate.type === 'SHADOW'
@@ -591,9 +577,8 @@ export class ChaseMatchEngine extends MatchEngine {
                             s.aliens.some((alien) => alien.holderSeatId !== seat.id))
       )
       if (!card) continue
-      const target = card.type === 'CHAOS' ? prey?.seatId : undefined
       const affectedAlien = s.aliens.find((alien) => alien.holderSeatId !== seat.id)?.id ?? 'ORIGINAL'
-      if (this.equip(seat.id, card.id, 'INTERVENTION', target).accepted) this.activate(seat.id, card.id, affectedAlien)
+      if (this.equip(seat.id, card.id, 'INTERVENTION').accepted) this.activate(seat.id, card.id, affectedAlien)
     }
   }
 
@@ -608,7 +593,6 @@ export class ChaseMatchEngine extends MatchEngine {
     this.state.arena!.shadows = []
     this.state.arena!.shots = []
     this.returnProtection.clear()
-    this.pendingChaos.clear()
     this.throwTargets.clear()
     for (const player of this.state.arena!.players) {
       player.moving = false
