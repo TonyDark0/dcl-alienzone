@@ -9,6 +9,10 @@ npm run ci
 
 Use the native Explorer preview for final camera, input, audio and multiplayer checks. Use `npm run start:multi` for multiple local clients.
 
+The pinned SDK rewrites `package.json` during its preparation step without a final newline. The `postbuild` script restores its formatting, and CI checks formatting again after building. After starting a preview, run `npx prettier --write package.json` before staging if the SDK has rewritten it.
+
+Run only one authoritative preview/server for this project at a time. Separate HTTP ports do not create separate authoritative scene identities: duplicate servers can disconnect one another with `DUPLICATE_IDENTITY`. Use the SDK-generated native preview link without adding `debug=true` or overriding the Explorer's trust warning.
+
 ## Public repository
 
 Requested public remote: <https://github.com/TonyDark0/dcl-alienzone>.
