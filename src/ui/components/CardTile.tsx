@@ -4,6 +4,7 @@ import { playUiSound } from '../../presentation/audioDirector'
 import type { UiCardView } from '../state/uiState'
 import { getControlMotion, pressControl, setControlHovered } from '../state/interactionState'
 import { SciFiSurface } from './SciFiSurface'
+import { CardHologram, CardSurface } from './CardSurface'
 import { UI_COLORS, UI_SPACING, UI_TYPE } from '../theme/tokens'
 
 interface CardTileProps {
@@ -18,6 +19,11 @@ interface CardTileProps {
   actionLabel?: string
   wrapTitle?: boolean
   horizontal?: boolean
+  portrait?: boolean
+  selected?: boolean
+  density?: number
+  width?: number
+  height?: number
 }
 
 const STATE_COLOR = {
@@ -49,7 +55,12 @@ export function CardTile({
   stateLabel,
   actionLabel,
   wrapTitle = false,
-  horizontal = false
+  horizontal = false,
+  portrait = false,
+  selected = false,
+  density = 1,
+  width = 164,
+  height = 236
 }: CardTileProps) {
   const tone =
     card.tier && card.state !== 'SPENT'
@@ -71,6 +82,87 @@ export function CardTile({
   const detail =
     actionLabel ?? (interactionDisabled ? 'LOCKED' : mini || compact ? STATE_HINT[card.state] : card.description)
   const displayName = card.name
+
+  if (portrait)
+    return (
+      <UiEntity
+        uiTransform={{
+          width,
+          height,
+          padding: 12 * density,
+          flexDirection: 'column',
+          flexShrink: 0,
+          alignItems: 'center',
+          pointerFilter: 'block'
+        }}
+        onMouseDown={
+          disabled
+            ? undefined
+            : () => {
+                pressControl(controlId)
+                playUiSound('press')
+                onPress()
+              }
+        }
+        onMouseEnter={
+          disabled
+            ? undefined
+            : () => {
+                setControlHovered(controlId, true)
+                playUiSound('highlight')
+              }
+        }
+        onMouseLeave={disabled ? undefined : () => setControlHovered(controlId, false)}
+      >
+        <CardSurface tone={tone} hover={motion.hover} selected={selected} />
+        <Label
+          value={card.tier ?? 'POWER'}
+          fontSize={11 * density}
+          color={tone}
+          uiTransform={{ width: '100%', height: 18 * density, flexShrink: 0, pointerFilter: 'none' }}
+        />
+        <Label
+          value={displayName}
+          fontSize={17 * density}
+          color={UI_COLORS.white}
+          uiTransform={{ width: '100%', height: 42 * density, flexShrink: 0, pointerFilter: 'none' }}
+        />
+        <UiEntity
+          uiTransform={{
+            width: '100%',
+            flexGrow: 1,
+            minHeight: 0,
+            justifyContent: 'center',
+            alignItems: 'center',
+            pointerFilter: 'none'
+          }}
+        >
+          <CardHologram
+            icon={card.icon}
+            tone={tone}
+            size={(height / density < 220 ? 60 : 76) * density}
+            hover={motion.hover}
+            density={density}
+          />
+        </UiEntity>
+        <UiEntity
+          uiTransform={{
+            width: '100%',
+            height: 1,
+            flexShrink: 0,
+            margin: { bottom: 5 * density },
+            pointerFilter: 'none'
+          }}
+          uiBackground={{ color: tone }}
+        />
+        <Label
+          value={actionLabel ?? (selected ? 'SELECTED' : 'VIEW CARD')}
+          fontSize={12 * density}
+          color={selected ? UI_COLORS.white : tone}
+          uiTransform={{ width: '100%', height: 38 * density, flexShrink: 0, pointerFilter: 'none' }}
+        />
+      </UiEntity>
+    )
 
   if (horizontal)
     return (
@@ -174,7 +266,7 @@ export function CardTile({
       }
       onMouseLeave={disabled ? undefined : () => setControlHovered(controlId, false)}
     >
-      <SciFiSurface tone={visuallyDisabled ? UI_COLORS.disabled : tone} hover={motion.hover} press={motion.press} />
+      <CardSurface tone={visuallyDisabled ? UI_COLORS.disabled : tone} hover={motion.hover} selected={selected} />
       <UiEntity
         uiTransform={{
           width: '100%',

@@ -1,6 +1,6 @@
 # Cards Reference
 
-The six original PNGs use transparent alpha at 256×256; internal dark details remain opaque. Some are reused as temporary icons for the new powers below. Runtime uses green General, red Epic and purple Rare frames. Prepare three round decks of three cards; F / touch activates the current queue head for +1. Turbo/Echo are board-only. See [v6 Rules](ROUND_POWERS_AND_LOADOUTS.md).
+The six original PNGs use transparent alpha at 256×256; internal dark details remain opaque. Some are reused as temporary icons for the new powers below. Runtime uses green General, red Epic and purple Rare frames. Prepare three round decks of three cards; F / touch activates the current queue head for +1. Turbo/Echo are board-only. See [v6.2 Rules](ROUND_POWERS_AND_LOADOUTS.md).
 
 ## INVISIBLE — replaces Reverse
 
@@ -18,7 +18,7 @@ General. Immune to incoming aliens for 3s, without removing one already held. Ac
 
 ![CHAOS](../assets/Images/ui/cards/az_card_chaos_v001.png)
 
-Epic, one slot per match. Activate to teleport immediately to a random valid location. It may escape danger or land near another threat. Any carried alien travels with you, retaining its timer and return-protection deadline. Consume immediately for +1 activation; do not redirect aliens, grant immunity, award a pass point or lock the queue. Destination is server-selected, not player-selected.
+Epic, one slot per match. Activate to teleport immediately to a random valid location. It may escape danger or land near another threat. Any carried alien travels with you, retaining its timer and return-protection deadline. Consume immediately for +1 activation; do not redirect aliens, grant immunity, award a pass point or lock the queue. Destination is server-selected, not player-selected. If you already held an alien and pass that same alien within 3s, its normal transfer point is the second Chaos point (two total, not three). A late throw still scores normally but does not qualify as Chaos success.
 
 ## HIDDEN WATCH
 
@@ -54,13 +54,13 @@ Epic. Five-second roaming clone with the owner's skin/name. Natural expiry blink
 
 ![Temporary SYMBIOSIS icon](../assets/Images/ui/cards/az_card_reverse_v001.png)
 
-Epic. Straight shot along facing, up to 5m. First body only, respecting protection. A miss consumes the card but keeps the alien. Requires an arrived alien. Temporary arrow art; the short flight marker reuses existing alien art.
+Epic. Straight shot along facing, up to 5m. First body only, respecting protection. A miss consumes the card but keeps the alien. Requires an arrived alien. +1 for firing and +1 for successful transfer, two total; the transfer is not counted again as a separate success bonus. Temporary arrow art; the short flight marker reuses existing alien art.
 
 ## VACUNE
 
 ![Temporary VACUNE icon](../assets/Images/ui/cards/az_card_skip_v001.png)
 
-Epic. Until round end: resist Freeze/incoming Echo, see Invisible and identify Shadow. Not immune to the original alien and does not remove one already held. Temporarily reuses Skip art.
+Epic. Until round end: resist Freeze/incoming Echo, see Invisible and identify Shadow. Not immune to the original alien and does not remove one already held. Activation grants +1; grant +1 once more when another player successfully activates Freeze or Echo while protection is active. Invisible/Shadow visibility does not qualify. Repeats, own casts, prior effects and rejected Echo do not qualify. Protection lasts after its reward. Temporarily reuses Skip art.
 
 ## Lettering reference
 

@@ -17,6 +17,7 @@ This document defines the binding DCL Alienzone MVP. Scope changes require an en
 - Rare purple board-only pickups: one 2x Turbo per round and one Echo per match in a random round. Chaos immediately teleports the caster to a random valid point, without safety guarantees or changing any carried alien/timer. Five-second Shadow decoys and straight-five-metre Symbiosis. Vacune resists Freeze/Echo and reveals invisible astronauts/decoys for one round.
 - Generated transparent logo and power icons, with a sub-second latest-only activation notification at the top-right, aligned with the first scoreboard row.
 - One ready slot per player; F / touch activates the current round queue head for +1. Live reordering does not pause play; Chaos consumes immediately without a queue lock. A 2.5s per-alien protection prevents immediate return to its giver.
+- Epic scoring: +1 activation and one conditional success point. Shadow traps and the first foreign Freeze/Echo activation during Vacune give one bonus. Symbiosis and a same-alien Chaos throw within 3s reuse the existing transfer point, never a third. Ordinary late throws retain their point. Pending conditions clear at takeover.
 - Authoritative server state, validation, bots and Scene Storage leaderboard.
 - Mobile-first HUD, reactions, camera takeover, music and SFX.
 - Attacked-seat takeover containment: five timed targets and a single +1 bonus for at least three hits.

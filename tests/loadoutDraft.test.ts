@@ -84,19 +84,42 @@ describe('loadout panel layout', () => {
   ])('keeps round blocks and the catalog separate at %ix%i', (w, h, mobile, compact) => {
     const layout = loadoutLayout(w, h, mobile, compact)
     expect(layout.stacked).toBe(false)
-    expect(layout.deckWidth + layout.catalogWidth + 16 + 2 * layout.padding).toBe(layout.panelWidth)
-    expect(layout.catalogWidth - 24).toBeGreaterThan(2 * (compact ? 128 : 148) + 20)
-    expect((layout.deckWidth - 20) * 0.32).toBeGreaterThan(150)
+    expect(layout.deckWidth + layout.catalogWidth + layout.detailWidth + 32 + 2 * layout.padding).toBe(
+      layout.panelWidth
+    )
+    expect(layout.catalogColumns * (layout.cardWidth + 12)).toBeLessThanOrEqual(layout.catalogWidth - 24)
+    expect(layout.detailWidth - 24).toBeGreaterThan(260)
+    expect((layout.deckWidth - 12) * 0.32).toBeGreaterThan(140)
     expect(layout.slotHeight).toBeGreaterThanOrEqual(44)
-    const allDeckBlocksAndOrdering = 22 + 3 * (12 + 22 + layout.slotHeight + 4) + 20 + 48
+    const allDeckBlocksAndOrdering = 22 + 3 * (12 + 22 + layout.slotHeight + 8) + 20 + 48 + (compact ? 0 : 36)
     expect(allDeckBlocksAndOrdering).toBeLessThanOrEqual(layout.paneHeight)
-    expect(layout.catalogRows * 92 + 262).toBeLessThanOrEqual(layout.paneHeight)
-    expect(layout.bodyHeight + 180 + layout.padding * 2).toBe(layout.panelHeight)
+    expect(layout.catalogRows * (layout.cardHeight + 12) + 180).toBeLessThanOrEqual(layout.paneHeight)
+    expect(layout.cardHeight / layout.cardWidth).toBeGreaterThan(1.4)
+    expect(layout.bodyHeight + 172 + layout.padding * 2).toBe(layout.panelHeight)
   })
   it('stacks both sections in a narrow aspect instead of squeezing them into columns', () => {
     const layout = loadoutLayout(800, 1000, false, true)
     expect(layout.stacked).toBe(true)
     expect(layout.deckWidth).toBe(layout.catalogWidth)
+    expect(layout.detailWidth).toBe(layout.catalogWidth)
     expect(layout.deckWidth + layout.padding * 2).toBe(layout.panelWidth)
+  })
+  it.each([
+    [400, 900, true],
+    [800, 1000, false]
+  ])('keeps narrow controls readable without changing the global renderer at %ix%i', (w, h, mobile) => {
+    const layout = loadoutLayout(w, h, mobile, true)
+    const scale = Math.min(w / (mobile ? 1600 : 1920), h / (mobile ? 720 : 1080))
+    expect(layout.stacked).toBe(true)
+    expect(layout.panelWidth * scale).toBeLessThanOrEqual(w)
+    expect(layout.panelHeight * scale).toBeLessThanOrEqual(h)
+    expect(layout.panelHeight * scale).toBeGreaterThan(h * 0.85)
+    expect(44 * layout.density * scale).toBeGreaterThanOrEqual(43.9)
+    expect(layout.catalogColumns * (layout.cardWidth + 12 * layout.density)).toBeLessThanOrEqual(
+      layout.catalogWidth - 24 * layout.density
+    )
+    expect(layout.catalogRows * (layout.cardHeight + 12 * layout.density) + 180 * layout.density).toBeLessThanOrEqual(
+      layout.paneHeight
+    )
   })
 })

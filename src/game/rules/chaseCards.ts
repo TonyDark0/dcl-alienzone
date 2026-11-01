@@ -33,9 +33,27 @@ export const CHASE_CARD_DETAILS: Record<
     description:
       'Board pickup: 2x speed for this round. Freeze cancels it to 1x without slowing that hit. One spawn per round.'
   },
-  SHADOW: { ...CARD_DETAILS.SHADOW, rarity: 'EPIC', starter: false },
-  SYMBIOSIS: { ...CARD_DETAILS.SYMBIOSIS, rarity: 'EPIC', starter: false },
-  VACUNE: { ...CARD_DETAILS.VACUNE, rarity: 'EPIC', starter: false },
+  SHADOW: {
+    ...CARD_DETAILS.SHADOW,
+    rarity: 'EPIC',
+    starter: false,
+    description:
+      'Create a 5s roaming decoy. +1 on use; +1 once if an attacker destroys it by attempting a throw. Natural expiry gives no bonus.'
+  },
+  SYMBIOSIS: {
+    ...CARD_DETAILS.SYMBIOSIS,
+    rarity: 'EPIC',
+    starter: false,
+    description:
+      'Fire a held alien straight up to 5m. +1 for firing; +1 for a successful transfer (the normal throw point). Miss or blocked target: keep the alien.'
+  },
+  VACUNE: {
+    ...CARD_DETAILS.VACUNE,
+    rarity: 'EPIC',
+    starter: false,
+    description:
+      'Round-long Freeze/Echo protection; see Invisible/Shadow. +1 on use; +1 once if someone else activates Freeze or Echo while protected. The original alien can still attack.'
+  },
   FREEZE: {
     ...CARD_DETAILS.FREEZE,
     description: `Slow every other astronaut and their running animation to 50% for ${CHASE_CONFIG.freezeSeconds} seconds. The alien timer keeps running.`,
@@ -58,7 +76,7 @@ export const CHASE_CARD_DETAILS: Record<
   CHAOS: {
     ...CARD_DETAILS.CHAOS,
     description:
-      'Teleport immediately to a random location in the arena. It may be safer or more dangerous. A carried alien comes with you; its timer continues. One use per match.',
+      'Random teleport; keep your alien and timer. +1 on use. If already carrying, pass that alien within 3s for the second point (the normal throw point, not an extra bonus). One use per match.',
     rarity: 'EPIC',
     starter: false
   },

@@ -14,6 +14,8 @@ import { SciFiSurface } from '../components/SciFiSurface'
 import { MatchLoadoutEditor } from '../components/MatchLoadoutEditor'
 import { PageNavigation } from '../components/PageNavigation'
 import { pageWindow } from '../state/pagination'
+import { ObjectiveInstructions } from '../components/ObjectiveInstructions'
+import { OBJECTIVE_PAGES } from '../state/tutorial'
 
 type LobbyPage = 'HOME' | 'INSTRUCTIONS' | 'LEADERBOARD' | 'LOADOUT'
 
@@ -24,7 +26,7 @@ const SCORE_ROWS = [
   ['SUCCESSFUL NEARBY THROW', '+1'],
   ['FIRST TO TOUCH A COIN', '+1'],
   ['ACTIVATE A CARD / COLLECT A POWER', '+1'],
-  ['FOOL AN ATTACKER WITH SHADOW', '+1'],
+  ['SHADOW / VACUNE SUCCESS (ONCE)', '+1'],
   ['NEVER HELD EITHER ALIEN IN A ROUND', '+1'],
   ['CONTAINMENT: HIT AT LEAST 3 OF 5', '+1']
 ] as const
@@ -85,7 +87,7 @@ function LobbyHome({ compact }: { compact: boolean }) {
         uiTransform={{ width: compact ? 520 : 620, height: compact ? 176 : 210, maxWidth: '100%', flexShrink: 0 }}
         uiBackground={{
           texture: {
-            src: 'assets/Images/ui/branding/az_logo_alienzone_v001.png',
+            src: 'assets/Images/ui/branding/az_logo_alienzone_arcade_v002.png',
             filterMode: 'bi-linear',
             wrapMode: 'clamp'
           },
@@ -162,9 +164,21 @@ function HelpText({
   )
 }
 
-function Instructions({ compact }: { compact: boolean }) {
+export function Instructions({ compact: requestedCompact }: { compact: boolean }) {
+  const canvas = UiCanvasInformation.getOrNull(engine.RootEntity)
+  const width = canvas?.width ?? 1920,
+    height = canvas?.height ?? 1080
+  const narrow = width / Math.max(1, height) < 1.25
+  const compact = requestedCompact || narrow
+  const scale = Math.max(0.01, Math.min(width / (isMobile() ? 1600 : 1920), height / (isMobile() ? 720 : 1080)))
+  const density = narrow && instructionPage === 'OBJECTIVE' ? Math.max(1, 1 / scale) : 1
+  const u = (value: number) => value * density
   const pages = pageWindow(
-    instructionPage === 'CARDS' ? CARD_ROWS.map((_, index) => index) : instructionPage === 'SCORING' ? [0, 1] : [0],
+    instructionPage === 'CARDS'
+      ? CARD_ROWS.map((_, index) => index)
+      : instructionPage === 'SCORING'
+        ? [0, 1]
+        : [...OBJECTIVE_PAGES],
     instructionSubpage,
     instructionPage === 'CARDS' ? 2 : 1
   )
@@ -172,41 +186,41 @@ function Instructions({ compact }: { compact: boolean }) {
     <Panel
       variant="accent"
       uiTransform={{
-        width: '86%',
-        maxWidth: 1040,
+        width: narrow && instructionPage === 'OBJECTIVE' ? '96%' : '86%',
+        maxWidth: u(1040),
         height: compact ? '94%' : '86%',
-        maxHeight: 820,
-        padding: compact ? 20 : 32,
+        maxHeight: u(820),
+        padding: u(compact ? 20 : 32),
         flexDirection: 'column'
       }}
     >
-      <UiEntity uiTransform={{ width: '100%', height: compact ? 60 : 76, flexShrink: 0, flexDirection: 'column' }}>
+      <UiEntity uiTransform={{ width: '100%', height: u(compact ? 60 : 76), flexShrink: 0, flexDirection: 'column' }}>
         <Label
           value="HOW TO PLAY"
-          fontSize={compact ? 28 : 38}
+          fontSize={u(compact ? 28 : 38)}
           color={UI_COLORS.white}
           textAlign="middle-center"
-          uiTransform={{ width: '100%', height: compact ? 36 : 48, flexShrink: 0 }}
+          uiTransform={{ width: '100%', height: u(compact ? 36 : 48), flexShrink: 0 }}
         />
         <Label
           value="RUN. TAG. OUTSMART THE CREW."
-          fontSize={compact ? 12 : 14}
+          fontSize={u(compact ? 12 : 14)}
           color={UI_COLORS.textMuted}
           textAlign="middle-center"
-          uiTransform={{ width: '100%', height: 24, flexShrink: 0 }}
+          uiTransform={{ width: '100%', height: u(24), flexShrink: 0 }}
         />
       </UiEntity>
       <UiEntity
-        uiTransform={{ width: '100%', height: 52, flexShrink: 0, flexDirection: 'row', margin: { bottom: 16 } }}
+        uiTransform={{ width: '100%', height: u(52), flexShrink: 0, flexDirection: 'row', margin: { bottom: u(16) } }}
       >
         {(['OBJECTIVE', 'SCORING', 'CARDS'] as const).map((page) => (
           <UiEntity uiTransform={{ width: '33.33%', padding: { left: 4, right: 4 } }}>
             <ActionButton
               label={page}
               tone={instructionPage === page ? 'primary' : 'secondary'}
-              fontSize={compact ? 16 : 18}
+              fontSize={u(compact ? 16 : 18)}
               width="100%"
-              height={48}
+              height={u(48)}
               interactionId={`tutorial-tab:${page}`}
               sound="menu"
               onPress={() => {
@@ -219,24 +233,13 @@ function Instructions({ compact }: { compact: boolean }) {
       </UiEntity>
       <UiEntity uiTransform={{ width: '100%', flexGrow: 1, minHeight: 0, flexDirection: 'column', overflow: 'hidden' }}>
         {instructionPage === 'OBJECTIVE' ? (
-          <UiEntity uiTransform={{ width: '100%', flexDirection: 'column' }}>
-            <HelpText
-              compact={compact}
-              height={compact ? 100 : 124}
-              value="A baby alien has hatched aboard the ship. Its curious face hides a dangerous instinct: when the timer runs out, it attacks the astronaut carrying it. Pass it between the crew and stay out of its grasp."
-            />
-            <HelpText
-              compact={compact}
-              accent
-              height={compact ? 66 : 86}
-              value="Your objective is to avoid the alien's attacks and finish the 3 rounds with the most points."
-            />
-            <HelpText
-              compact={compact}
-              height={compact ? 118 : 132}
-              value="Prepare three ordered decks before finding a match: three cards per round. Unused cards expire. Move with WASD or the mobile joystick; E / THROW passes to a nearby astronaut. F / the ready card activates your next power. Collect coins for +1 each: ten per round, with no replacements."
-            />
-          </UiEntity>
+          <ObjectiveInstructions
+            page={pages.page}
+            compact={compact}
+            mobile={isMobile()}
+            narrow={narrow}
+            density={density}
+          />
         ) : instructionPage === 'SCORING' ? (
           <UiEntity uiTransform={{ width: '100%', flexDirection: 'column' }}>
             {pages.page === 0 ? (
@@ -244,7 +247,7 @@ function Instructions({ compact }: { compact: boolean }) {
                 <HelpText
                   compact={compact}
                   height={compact ? 70 : 76}
-                  value="An accepted throw, coin collection or power activation awards +1. Shadow grants one extra point if an attacker throws at the decoy. Rejected inputs and ordering cards give nothing. Holding awards nothing. Humans and bots use the same rules."
+                  value="Accepted throws, coins and power activations give +1. Epics give a second point on success: Shadow/Vacune have one bonus; Chaos/Symbiosis reuse the throw point, never a third. Rejected inputs, ordering and holding give nothing."
                 />
                 {SCORE_ROWS.map(([time, heat]) => (
                   <UiEntity
@@ -288,6 +291,11 @@ function Instructions({ compact }: { compact: boolean }) {
                   accent
                   height={compact ? 40 : 50}
                   value="Skip protects for 3s. Invisible hides for 10s, except from Vacune. Freeze slows others to 50% for 2s; on Turbo it cancels the boost to normal speed instead. The timer keeps running."
+                />
+                <HelpText
+                  compact={compact}
+                  height={compact ? 80 : 96}
+                  value="EPIC SUCCESS: Shadow needs a throw into its decoy. Vacune needs someone else to activate Freeze/Echo while protected, once. Chaos needs the alien you held at teleport to be passed within 3s. Symbiosis needs a successful shot. A late Chaos throw still gives its normal +1."
                 />
                 <HelpText
                   compact={compact}
@@ -371,6 +379,7 @@ function Instructions({ compact }: { compact: boolean }) {
       </UiEntity>
       <PageNavigation
         id="instructions-pages"
+        density={density}
         page={pages.page}
         count={pages.count}
         onPage={(page) => {
@@ -378,12 +387,14 @@ function Instructions({ compact }: { compact: boolean }) {
         }}
       />
       <UiEntity
-        uiTransform={{ width: '100%', height: 76, flexShrink: 0, justifyContent: 'center', alignItems: 'center' }}
+        uiTransform={{ width: '100%', height: u(76), flexShrink: 0, justifyContent: 'center', alignItems: 'center' }}
       >
         <ActionButton
           label="BACK"
           tone="secondary"
-          width={compact ? 280 : 340}
+          width={u(compact ? 280 : 340)}
+          height={u(58)}
+          fontSize={u(20)}
           interactionId="instructions-back"
           sound="menu"
           onPress={() => {

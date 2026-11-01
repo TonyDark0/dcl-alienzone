@@ -8,7 +8,7 @@ Only one `setUiRenderer` call is allowed.
 
 ## Sci-fi skin — approved local integration
 
-The approved [Sci-Fi Design System](SCI_FI_DESIGN_SYSTEM.md) is implemented locally: original RGBA nine-slice surfaces, angular alpha cut-outs, thick accent spines, navy/teal gradients, cyan navigation and coral primary actions. Three shared 512×256 textures skin existing components; live text, power icons and reactions remain separate. The generated approval board is an art-source reference, never a runtime texture.
+The approved [Sci-Fi Design System](SCI_FI_DESIGN_SYSTEM.md) is implemented locally: original RGBA nine-slice surfaces, angular alpha cut-outs, thin double bezels with small corner caps, navy/teal gradients, cyan navigation and coral primary actions. Three shared 512×256 panel textures, two 256×512 card surfaces and a 128×64 pedestal skin existing components; live text, power icons and reactions remain separate. The generated approval board is an art-source reference, never a runtime texture.
 
 Desktop hover eases over 120 ms; press feedback starts immediately and releases over 110 ms. Lobby page navigation exits over 160 ms and enters over 220 ms, with interruptible state. The three-second entry countdown and game requests are not delayed by transitions. Results and card pickers have short entrance feedback. No custom shader, UI framework or backend dependency is added.
 
@@ -16,7 +16,7 @@ Desktop hover eases over 120 ms; press feedback starts immediately and releases 
 
 Scene-owned menus do not use `overflow: 'scroll'`: the pinned SDK exposes no scrollbar width/color styling and the Explorer's stock gray controls do not match the visual system. `PageNavigation` uses 44-unit Previous/Next buttons, a page count and a three-unit cyan segmented indicator. Hide it when there is only one page. This is discrete whole-item navigation, not a fake scroll thumb; it works without wheel input, dragging or hover. Native DCL menus remain unchanged.
 
-The loadout editor fits all nine round slots without scrolling. The catalog uses complete horizontal card options and General/Epic tabs, with the number of visible rows calculated from the available height. Narrow aspect ratios switch between round decks and available cards instead of nesting scroll regions. Tutorial scoring uses two pages; tutorial cards show two complete entries per page; the expanded world leaderboard shows four records per page and retains global rank numbers. The current-round queue has at most three cards and fits without scrolling. Main actions stay outside paged content.
+The loadout editor fits all nine round slots without scrolling. The catalog uses full portrait cards and All/General/Epic filters, with columns/whole rows calculated from available space. Wide layouts show round decks, library and a persistent detail/equip pane. Choosing a card is preview-only; EQUIP CARD edits the selected slot. Used Epics remain inspectable with equip disabled and their occupied slot named. Narrow layouts use Rounds/Library/Detail tabs and renderer-scale-aware type/touch density rather than squeezing three columns or nesting scroll regions. Tutorial scoring uses two pages; tutorial cards show two complete entries per page; the expanded world leaderboard shows four records per page and retains global rank numbers. The current-round queue has at most three cards and fits without scrolling. Main actions stay outside paged content.
 
 ## Ownership
 
@@ -32,7 +32,9 @@ The opaque lobby exposes three clear actions:
 2. **How to Play**
 3. **World Leaderboard**
 
-The tutorial uses three touch-friendly tabs: Objective, Scoring and Cards. Text blocks reserve explicit heights to prevent overlap. Current content explains WASD / mobile joystick, E / touch throws, F / touch activation, five-second deck setup, untouched-round points, containment and locked powers. The leaderboard shows running-mode records separately from legacy scores.
+The tutorial uses three touch-friendly tabs: Objective, Scoring and Cards. Objective presents lore, the highest-points-across-three-rounds goal and six original illustrated steps across three pages: move, nearby throw, prepare/play cards, collect shared coins, watch the alien and contain its attack. Two whole steps appear per page, side by side on wide screens and stacked on narrow screens, with scale-compensated narrow typography. Keyboard and mobile captions differ; no hover is required. Scoring and Cards retain their own pages. See [Tutorial guide](TUTORIAL_GUIDE.md). Space / touch throws; F / touch activates. The leaderboard shows running-mode records separately from legacy scores.
+
+The main menu uses the owner's chosen Arcade blue wordmark, `az_logo_alienzone_arcade_v002.png` (1024×342 RGBA). Five full-resolution concepts and prompt records are archived outside runtime assets; v001 is preserved.
 
 ## HUD
 
@@ -40,13 +42,13 @@ The tutorial uses three touch-friendly tabs: Objective, Scoring and Cards. Text 
 - Top-center: round and takeover progress; no ring-direction arrow in running mode.
 - Beside top-center: danger band, kept clear of native Local Tools.
 - Bottom-left of the central status dock: three square image-based quick reactions.
-- Bottom-center: E · THROW ALIEN (THROW ALIEN on mobile), enabled only while holding an arrived alien with a server-confirmed eligible target. Core range is 1.5m, with the bounded 150ms/0.2m server-observed edge window. Hint names the selected target unless invisible, otherwise shows arrival/range guidance and rejected-action feedback. Non-carriers are prompted to evade/collect coins. Desktop WASD moves in screen-relative directions. Mobile uses the native joystick, kept clear of scene buttons.
+- Bottom-center: SPACE · THROW ALIEN (THROW ALIEN on mobile), enabled only while holding an arrived alien with a server-confirmed eligible target. Core range is 1.5m, with the bounded 150ms/0.2m server-observed edge window. Hint names the selected target unless invisible, otherwise shows arrival/range guidance and rejected-action feedback. Non-carriers are prompted to evade/collect coins. Desktop WASD moves in screen-relative directions. Mobile uses the native joystick, kept clear of scene buttons.
 - If only the immediate giver is nearby and still return-protected, show RETURN PROTECTED with the remaining seconds instead of misleading MOVE CLOSER guidance. The server provides that recipient-only deadline. Turbo displays ×2 / ROUND; Vacune displays ROUND. These hints never decide eligibility, effects or points.
 - Bottom-right of the central status dock: one ready card plus ORDER DECK. F or a touch activates the first card only. The queue picker opens upward without pausing.
 - Names above 3D astronauts identify every seat; reaction images animate independently above the persistent nameplate for 1.5 seconds and restart when tapped repeatedly.
 - Camera-facing notices above each name show POINTS changes and activated cards.
 - A server-confirmed coin collection has its own 2.2×-scale numeric +1 notice, warm yellow/white color, stronger dark outline and longer full-opacity hold, without triggering AST_PASS or a central announcement. Ordinary point notices remain unchanged. Ten coins spawn each round; no coin-shop balance or inventory UI is introduced. Tutorial scoring includes coin contact and round expiry.
-- Ranking retains `BG_end_match.png` as the full-screen results background, with a dark framed panel and centred MATCH COMPLETE / bold RANKING headings.
+- Ranking retains `BG_end_match.png` as the full-screen results background, with a dark framed panel and centred MATCH COMPLETSpace / bold RANKING headings.
 
 ## Card interaction
 
@@ -56,7 +58,7 @@ The tutorial uses three touch-friendly tabs: Objective, Scoring and Cards. Text 
 - Only the first unused card is ready. F / touch consumes or activates it, then advances the queue. Already active effects continue their lifetime independently of the ready slot. The existing 1.2-second activation cooldown is displayed on the next card.
 - Spent/active cards cannot be reinserted, duplicated or refunded by ordering. No category controls exist in the running HUD; the archived seated components are not used there.
 - Card labels are centered: title, availability/state, icon and action hint.
-- Chaos immediately teleports its user randomly and advances the ready slot, with no target picker or queue lock. Its accepted activation uses the same top-right icon/name/caster row as other powers: 208×34 desktop or 164×28 compact virtual units. New activations replace the prior row immediately; a short slide/fade keeps its 0.9-second lifetime. It never intercepts input. Every accepted card/pickup activation also shows a numeric +1 notice.
+- Chaos immediately teleports its user randomly and advances the ready slot, with no target picker or queue lock. Its accepted activation uses the same top-right icon/name/caster row as other powers: 208×34 desktop or 164×28 compact virtual units. New activations replace the prior row immediately; a short slide/fade keeps its 0.9-second lifetime. It never intercepts input. Every accepted card/pickup activation also shows a numeric +1 notice. Epic descriptions explain the conditional second point. Shadow/Vacune successes show one additional authoritative numeric +1; Chaos/Symbiosis use the existing transfer +1 and never duplicate its notice. Chaos counts success only for the alien held at teleport and passed within 3s. Vacune counts only the first foreign accepted Freeze/Echo during protection.
 - The lobby uses the transparent Alienzone lettering, one centred tagline and three plain buttons without hints or seat counts. Scores use numbers only.
 - The compact queue panel centers its at-most-three remaining cards without native scrollbars and displays DECK EMPTY when exhausted. The mobile picker uses explicit touch controls and leaves the native movement joystick visible.
 

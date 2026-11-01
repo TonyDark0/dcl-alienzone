@@ -20,7 +20,15 @@ vi.mock('@dcl/sdk/ecs', () => ({
     isPressed: (key: string) => fixture.pressed.has(key),
     isTriggered: (key: string) => fixture.triggered.has(key)
   },
-  InputAction: { IA_FORWARD: 'W', IA_BACKWARD: 'S', IA_LEFT: 'A', IA_RIGHT: 'D', IA_PRIMARY: 'E', IA_SECONDARY: 'F' },
+  InputAction: {
+    IA_FORWARD: 'W',
+    IA_BACKWARD: 'S',
+    IA_LEFT: 'A',
+    IA_RIGHT: 'D',
+    IA_PRIMARY: 'E',
+    IA_JUMP: 'SPACE',
+    IA_SECONDARY: 'F'
+  },
   PointerEventType: { PET_DOWN: 1 },
   PrimaryPointerInfo: { getOrNull: () => ({ worldRayDirection: { x: 1, y: -1, z: 0 } }) },
   Transform: { getOrNull: () => ({ position: { x: 16, y: 10, z: 16 } }) }
@@ -100,10 +108,10 @@ describe('running input intent stream', () => {
     fixture.tick(0.12)
     expect(fixture.send).toHaveBeenLastCalledWith(1, yaw, 1)
   })
-  it('normalizes diagonal speed, cancels opposing keys and maps E/F to touch actions', () => {
+  it('normalizes diagonal speed, cancels opposing keys and maps Space/F to actions', () => {
     fixture.pressed.add('W')
     fixture.pressed.add('D')
-    fixture.triggered.add('E')
+    fixture.triggered.add('SPACE')
     fixture.triggered.add('F')
     fixture.tick(0.12)
     expect(fixture.send).toHaveBeenLastCalledWith(1, Math.PI / 4, 1)
@@ -120,5 +128,22 @@ describe('running input intent stream', () => {
     fixture.pressed.add('S')
     fixture.tick(0.016)
     expect(fixture.send).toHaveBeenLastCalledWith(1, (-Math.PI * 3) / 4, 1)
+  })
+  it('E no longer throws; held Space does not repeat, and takeover ignores Space', () => {
+    fixture.triggered.add('E')
+    fixture.tick(0.016)
+    expect(fixture.throw).not.toHaveBeenCalled()
+    fixture.triggered.clear()
+    fixture.triggered.add('SPACE')
+    fixture.tick(0.016)
+    expect(fixture.throw).toHaveBeenCalledOnce()
+    fixture.triggered.clear()
+    fixture.pressed.add('SPACE')
+    fixture.tick(0.016)
+    expect(fixture.throw).toHaveBeenCalledOnce()
+    fixture.state.phase = 'TAKEOVER'
+    fixture.triggered.add('SPACE')
+    fixture.tick(0.016)
+    expect(fixture.throw).toHaveBeenCalledOnce()
   })
 })

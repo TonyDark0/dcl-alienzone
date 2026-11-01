@@ -1,6 +1,6 @@
 # Creator Success application readiness
 
-Checked **2026-10-31** against [official Studio Onboarding](https://docs.decentraland.org/creator/studio-onboarding). This is a preparation record, not approval or a funding promise. The GDD now describes the implemented v6.1 running game rather than the archived seated prototype. Recheck the live guide and application before submitting.
+Checked **2026-10-31** against [official Studio Onboarding](https://docs.decentraland.org/creator/studio-onboarding). This is a preparation record, not approval or a funding promise. The GDD now describes the implemented v6.2 running game rather than the archived seated prototype. Recheck the live guide and application before submitting.
 
 ## Evidence and remaining work
 

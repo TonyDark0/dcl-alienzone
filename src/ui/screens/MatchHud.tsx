@@ -251,7 +251,7 @@ export function MatchHud() {
               <Label value={effect} fontSize={16} color={UI_COLORS.warning} uiTransform={{ height: 24 }} />
             ) : null}
             <ActionButton
-              label={state.passPending ? 'SENDING…' : mobile ? 'THROW ALIEN' : 'E · THROW ALIEN'}
+              label={state.passPending ? 'SENDING…' : mobile ? 'THROW ALIEN' : 'SPACE · THROW ALIEN'}
               hint={
                 state.lastActionError ??
                 (!state.isLocalHolder
@@ -273,7 +273,7 @@ export function MatchHud() {
             />
             <Label
               value={
-                mobile ? 'JOYSTICK TO MOVE · TAP TO THROW / ACTIVATE' : 'WASD TO MOVE · E TO THROW · F TO ACTIVATE'
+                mobile ? 'JOYSTICK TO MOVE · TAP TO THROW / ACTIVATE' : 'WASD TO MOVE · SPACE TO THROW · F TO ACTIVATE'
               }
               fontSize={12}
               color={UI_COLORS.textMuted}

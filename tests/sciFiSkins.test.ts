@@ -2,13 +2,13 @@ import { readFileSync, readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { inflateSync } from 'node:zlib'
 import { describe, expect, it } from 'vitest'
-import { SCI_FI_SLICES, SCI_FI_TEXTURES } from '../src/ui/theme/sciFiSkins'
+import { CARD_SLICES, CARD_TEXTURES, SCI_FI_SLICES, SCI_FI_TEXTURES } from '../src/ui/theme/sciFiSkins'
 
-function decodeRgba(file: string) {
+function decodeRgba(file: string, width = 512, height = 256) {
   const png = readFileSync(file)
   expect(png.subarray(1, 4).toString()).toBe('PNG')
-  expect(png.readUInt32BE(16)).toBe(512)
-  expect(png.readUInt32BE(20)).toBe(256)
+  expect(png.readUInt32BE(16)).toBe(width)
+  expect(png.readUInt32BE(20)).toBe(height)
   expect(png[24]).toBe(8)
   expect(png[25]).toBe(6)
   const chunks: Buffer[] = []
@@ -19,9 +19,9 @@ function decodeRgba(file: string) {
     offset += length + 12
   }
   const raw = inflateSync(Buffer.concat(chunks))
-  const stride = 512 * 4
-  const pixels = Buffer.alloc(stride * 256)
-  for (let y = 0; y < 256; y++) {
+  const stride = width * 4
+  const pixels = Buffer.alloc(stride * height)
+  for (let y = 0; y < height; y++) {
     const filter = raw[y * (stride + 1)]
     for (let x = 0; x < stride; x++) {
       const a = x >= 4 ? pixels[y * stride + x - 4] : 0
@@ -48,7 +48,7 @@ function decodeRgba(file: string) {
       pixels[y * stride + x] = (raw[y * (stride + 1) + x + 1] + predictor) & 255
     }
   }
-  return (x: number, y: number) => [...pixels.subarray((y * 512 + x) * 4, (y * 512 + x) * 4 + 4)]
+  return (x: number, y: number) => [...pixels.subarray((y * width + x) * 4, (y * width + x) * 4 + 4)]
 }
 
 describe('shared sci-fi UI skins', () => {
@@ -81,5 +81,19 @@ describe('shared sci-fi UI skins', () => {
     expect(fill(256, 20)[2]).toBeGreaterThan(fill(256, 230)[2])
     expect(primary(256, 20)[0]).toBeGreaterThan(primary(256, 230)[0])
     expect(primary(256, 100)[0]).toBeGreaterThan(200)
+  })
+
+  it('ships thin portrait bezels, real alpha cutouts and a small transparent hologram pedestal', () => {
+    const fill = decodeRgba(CARD_TEXTURES.fill, 256, 512)
+    const frame = decodeRgba(CARD_TEXTURES.frame, 256, 512)
+    const pedestal = decodeRgba(CARD_TEXTURES.pedestal, 128, 64)
+    expect(fill(0, 0)[3]).toBe(0)
+    expect(fill(128, 256)[3]).toBe(255)
+    expect(frame(128, 256)[3]).toBe(0)
+    expect(frame(4, 256)[3]).toBeGreaterThan(200)
+    expect(pedestal(0, 0)[3]).toBe(0)
+    expect(pedestal(64, 18)[3]).toBeGreaterThan(0)
+    expect(CARD_SLICES.top + CARD_SLICES.bottom).toBeLessThan(0.5)
+    for (const file of Object.values(CARD_TEXTURES)) expect(readFileSync(file).length).toBeLessThan(60_000)
   })
 })

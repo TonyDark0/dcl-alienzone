@@ -10,7 +10,7 @@ A matte, solid-color, low-poly spaceship interior compatible with the shared atl
 - Keep a fixed world heading and nominal `60°` angle relative to the floor. The camera-to-target distance is 10% shorter than the former shared view (relative height 15.3m). Near the south edge, camera Z stays at least 0.25m inside the parcels, with a slightly steeper angle so the astronaut remains centered.
 - Retain the former viewport-aware lens instead of widening it to undo the zoom. The view follows the astronaut, so it no longer guarantees the entire 30×15m arena remains visible. Spectators keep the previous room-centered global pose. Native desktop/phone readability and edge checks remain required.
 - No mouse orbit, free translation, zoom, pitch or UI arrow controls.
-- WASD / native joystick moves the astronaut; E / touch throws and F / touch activates the ready card.
+- WASD / native joystick moves the astronaut; Space / touch throws and F / touch activates the ready card.
 - The local suit close-up is prepared under countdown. At room reveal, show the assigned astronaut for 0.6s, then zoom out smoothly over 1.8s into the tracked view during seating, before deck setup and any fuse. Late joins use snapshot intro time; spectators retain the global view.
 
 Takeover:
@@ -40,7 +40,7 @@ Takeover:
 - Quick reactions display independently above the persistent nameplate. Each square image enters from 50% scale and zero opacity, reaches full scale and opacity, rises slightly, then exits toward 50% scale and zero opacity. It lasts 1.5 seconds, and another press restarts the complete animation even when it repeats the same reaction. Reactions never render as world-space words.
 - Score deltas and activated cards appear in a separate camera-facing label directly above the name. The label enters from 50% scale and zero opacity, reaches full scale and opacity, rises, then exits at 50% scale and zero opacity.
 - Coin +1 notices alone are 2.2× larger, warm yellow/white with a thicker black outline. Their baseline is Y 1.85 (ordinary notices: 1.652), with up to 0.28m rise. They reach full size/opacity in 0.14s, remain fully visible through 1.55s, then shrink/fade within 2.2s. Repeated pickups restart the notice from the new authoritative sequence. The nameplate is not replaced and no additional points are granted by this animation.
-- Danger uses SAFE / DANGER / CRITICAL bands.
+- Danger uses SAFSpace / DANGER / CRITICAL bands.
 - Hidden Watch removes exact time but never removes danger language.
 - Chaos must visually read as an intentional reroute, not desynchronization.
 - Echo must be labeled as non-attacking.

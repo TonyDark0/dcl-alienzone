@@ -7,16 +7,18 @@ export function PageNavigation({
   id,
   page,
   count,
-  onPage
+  onPage,
+  density = 1
 }: {
   id: string
   page: number
   count: number
   onPage: (page: number) => void
+  density?: number
 }) {
   if (count <= 1) return <UiEntity uiTransform={{ display: 'none' }} />
   return (
-    <UiEntity uiTransform={{ width: '100%', height: 54, flexShrink: 0, flexDirection: 'column' }}>
+    <UiEntity uiTransform={{ width: '100%', height: 54 * density, flexShrink: 0, flexDirection: 'column' }}>
       <UiEntity
         uiTransform={{ width: '100%', height: 3, flexDirection: 'row', margin: { bottom: 5 }, pointerFilter: 'none' }}
       >
@@ -30,7 +32,7 @@ export function PageNavigation({
       <UiEntity
         uiTransform={{
           width: '100%',
-          height: 44,
+          height: 44 * density,
           flexShrink: 0,
           flexDirection: 'row',
           justifyContent: 'space-between',
@@ -40,9 +42,9 @@ export function PageNavigation({
         <ActionButton
           label="← PREV"
           tone="secondary"
-          width={108}
-          height={44}
-          fontSize={13}
+          width={108 * density}
+          height={44 * density}
+          fontSize={13 * density}
           disabled={page <= 0}
           interactionId={`${id}:prev`}
           onPress={() => {
@@ -52,15 +54,15 @@ export function PageNavigation({
         <Label
           value={`${page + 1} / ${count}`}
           color={UI_COLORS.textMuted}
-          fontSize={13}
-          uiTransform={{ flexGrow: 1, height: 44 }}
+          fontSize={13 * density}
+          uiTransform={{ flexGrow: 1, height: 44 * density }}
         />
         <ActionButton
           label="NEXT →"
           tone="secondary"
-          width={108}
-          height={44}
-          fontSize={13}
+          width={108 * density}
+          height={44 * density}
+          fontSize={13 * density}
           disabled={page >= count - 1}
           interactionId={`${id}:next`}
           onPress={() => {

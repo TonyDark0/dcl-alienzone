@@ -1,6 +1,6 @@
 # DCL Alienzone
 
-Decentraland Creator Success — working V0 application GDD. Updated **2026-10-31** to the implemented **v6.1 running-tag** rules. This replaces the former seated-pass design; sitting remains only in the introduction. Detailed rules: [Game Rules](../docs/GAME_RULES.md) and [Round Powers and Loadouts](../docs/ROUND_POWERS_AND_LOADOUTS.md).
+Decentraland Creator Success — working V0 application GDD. Updated **2026-10-31** to the implemented **v6.2 running-tag** rules. This replaces the former seated-pass design; sitting remains only in the introduction. Detailed rules: [Game Rules](../docs/GAME_RULES.md) and [Round Powers and Loadouts](../docs/ROUND_POWERS_AND_LOADOUTS.md).
 
 | Field                   | Current status                                                                                                                                                                  |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -38,21 +38,21 @@ Decentraland Creator Success — working V0 application GDD. Updated **2026-10-3
 
 ## 2. First Minutes & How to Play
 
-| Phase                     | Player experience                                                                                                                                                                                                                         |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Arrival                   | The opaque home menu offers Play New Match, How to Play and World Leaderboard. Browsing does not occupy a match seat.                                                                                                                     |
-| Preparation, player-paced | Play opens three visible round blocks, each with three numbered card slots. Tap a slot, choose its replacement in the General/Epic catalog, and set order with Earlier/Later. Card 1 is first. Full-item pages replace native scrollbars. |
-| Entry                     | READY · FIND MATCH submits all nine cards for server validation. Empty seats become bots. An opaque three-second countdown prepares the actors and camera.                                                                                |
-| Visible introduction      | Your assigned suit appears in close-up, then the camera eases out during the standing/sitting sequence. The first-round deck gets a five-second order review. No alien fuse runs during preparation or the intro.                         |
-| Live round                | A random starter receives the original alien. Run/evade, use cards and collect coins. If carrying an arrived alien, approach an eligible astronaut and explicitly throw it. The shared 28-second fuse never resets on a transfer.         |
-| Takeover                  | When the original fuse expires, everyone sees a five-second close-up of its holder being attacked. Only that player gets shake, red pulses and five timed TAP targets. At least three hits earns one bonus point.                         |
-| Round continuation        | The first two attacks are contained regardless of TAP performance. Everyone remains in play. Leftover coins, pickups, effects and cards expire; the next planned deck and ten new coins enter the next round. Positions carry forward.    |
-| Results                   | The third attack ends the match, still allowing its containment bonus. Rank by points, then fewer attacks, then more successful transfers; perfect ties share the win. Save human records and offer Rematch/Main Menu.                    |
+| Phase                     | Player experience                                                                                                                                                                                                                                                           |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Arrival                   | The opaque home menu offers Play New Match, How to Play and World Leaderboard. Browsing does not occupy a match seat.                                                                                                                                                       |
+| Preparation, player-paced | Play opens three visible round blocks, each with three numbered card slots. Tap a slot, preview a portrait card from All/General/Epic, confirm EQUIP CARD in its detail pane, and set order with Earlier/Later. Card 1 is first. Full-item pages replace native scrollbars. |
+| Entry                     | READY · FIND MATCH submits all nine cards for server validation. Empty seats become bots. An opaque three-second countdown prepares the actors and camera.                                                                                                                  |
+| Visible introduction      | Your assigned suit appears in close-up, then the camera eases out during the standing/sitting sequence. The first-round deck gets a five-second order review. No alien fuse runs during preparation or the intro.                                                           |
+| Live round                | A random starter receives the original alien. Run/evade, use cards and collect coins. If carrying an arrived alien, approach an eligible astronaut and explicitly throw it. The shared 28-second fuse never resets on a transfer.                                           |
+| Takeover                  | When the original fuse expires, everyone sees a five-second close-up of its holder being attacked. Only that player gets shake, red pulses and five timed TAP targets. At least three hits earns one bonus point.                                                           |
+| Round continuation        | The first two attacks are contained regardless of TAP performance. Everyone remains in play. Leftover coins, pickups, effects and cards expire; the next planned deck and ten new coins enter the next round. Positions carry forward.                                      |
+| Results                   | The third attack ends the match, still allowing its containment bonus. Rank by points, then fewer attacks, then more successful transfers; perfect ties share the win. Save human records and offer Rematch/Main Menu.                                                      |
 
 **Player-facing instructions**
 
 - Move with WASD or the mobile joystick. Run away from carriers; chase someone if you hold an alien.
-- Get within 1.5m and press E / tap THROW ALIEN. Touching alone never transfers it.
+- Get within 1.5m and press Space / tap THROW ALIEN. Touching alone never transfers it.
 - Press F / tap the ready card to use it. Reorder the current deck without pausing.
 - Touch coins and purple board powers to collect them. Finish three rounds with the most points.
 
@@ -68,22 +68,23 @@ The tracked drone keeps a fixed world heading at a nominal 60° angle, centered 
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | Read and position     | See holders, danger, nearby pickups and opponents → choose pursuit, evasion or collection → move through the 30×15m area.          | Humans, visible threats and seeded pickups change routes.               |
 | Prepare and intervene | Reorder the remaining queue or activate its head → icon/name/caster announcement and effect feedback → change the immediate chase. | Counterplay and the cost of using a finite card make timing matter.     |
-| Chase and throw       | Reach an eligible target and press E / tap THROW → alien transfer and +1 → ownership changes, shared fuse does not.                | Escape danger or create a new pursuit without automatic contact passes. |
+| Chase and throw       | Reach an eligible target and press Space / tap THROW → alien transfer and +1 → ownership changes, shared fuse does not.            | Escape danger or create a new pursuit without automatic contact passes. |
 | Collect               | Touch a shared coin or board power → pickup disappears for everyone → +1 and, for powers, its effect.                              | First contact wins; chasing a pickup can expose you to the alien.       |
 | Contain and regroup   | Watch the attack; the victim taps timed targets → optional +1 → next round, or final ranking and rematch.                          | Keep all players involved and make outcomes visible.                    |
 
 **Scoring in this build**
 
-| Event                                                  | Points                                            |
-| ------------------------------------------------------ | ------------------------------------------------- |
-| Successful original or Echo transfer                   | +1 to its outgoing holder                         |
-| First server-confirmed coin contact                    | +1 to the collector                               |
-| Accepted card or board-power activation                | +1 once                                           |
-| Entire round without receiving either alien            | +1 at takeover; starting holders count as touched |
-| Victim hits at least three of five containment targets | +1 once, including the final attack               |
-| A valid attempted throw into your Shadow decoy         | +1 extra to the decoy owner                       |
+| Event                                                                   | Points                                                          |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Successful original or Echo transfer                                    | +1 to its outgoing holder                                       |
+| First server-confirmed coin contact                                     | +1 to the collector                                             |
+| Accepted card or board-power activation                                 | +1 once                                                         |
+| Entire round without receiving either alien                             | +1 at takeover; starting holders count as touched               |
+| Victim hits at least three of five containment targets                  | +1 once, including the final attack                             |
+| A valid attempted throw into your Shadow decoy                          | +1 extra to the decoy owner                                     |
+| First accepted foreign Freeze/Echo activation during your active Vacune | +1 once; not own activations, Invisible/Shadow or rejected Echo |
 
-There are no danger-band points, two-second scoring hold, automatic pass or takeover score deduction. Merely holding, preparing/reordering cards and rejected/repeated actions award nothing. Symbiosis can earn its activation point plus a successful transfer point; Chaos teleportation is not a transfer. Score UI displays numbers only.
+There are no danger-band points, two-second scoring hold, automatic pass or takeover score deduction. Merely holding, preparing/reordering cards and rejected/repeated actions award nothing. Symbiosis can earn its activation point plus a successful transfer point; Chaos teleportation is not a transfer. Epics have one activation point and one conditional success point: Shadow needs a trapped decoy; Vacune needs the first accepted foreign Freeze/Echo while protected; Symbiosis needs a successful shot; Chaos needs the same alien carried at teleport successfully passed within 3s. Chaos/Symbiosis use the existing transfer point, never an additional third point. A late throw still scores normally but does not count as Chaos success. No successful transfer is counted twice, even if Symbiosis also completes Chaos. Score UI displays numbers only.
 
 Exactly ten shared coins spawn at each round start, thirty per match and never more than ten at once. Collected coins do not respawn. Leftovers disappear at takeover without value. Coins are match points, not spendable or persistent currency.
 
@@ -108,7 +109,7 @@ The preview defaults to Freeze/Skip/Invisible for each round but allows all eigh
 | Rare · purple, board only | Turbo        | One random appearance per round. Contact gives 2x movement/animation until takeover or a cancelling Freeze. A later Freeze can slow normally.                                                                        |
 | Rare · purple, board only | Echo         | One random appearance in one random round per match. Contact spawns a transferable second alien on another eligible astronaut, not the collector or original holder. Same fuse and transfer points; never attacks.   |
 
-Rare powers never enter decks and do not replace coins. They auto-activate on authoritative contact and expire uncollected at takeover, without respawning. If Echo has no eligible recipient, it stays unconsumed until activation becomes possible or the round ends. Echo vanishes at takeover; each next round begins with only the original. See the [v6.1 contract](../docs/ROUND_POWERS_AND_LOADOUTS.md) for protection, visibility and collision edge cases.
+Rare powers never enter decks and do not replace coins. They auto-activate on authoritative contact and expire uncollected at takeover, without respawning. If Echo has no eligible recipient, it stays unconsumed until activation becomes possible or the round ends. Echo vanishes at takeover; each next round begins with only the original. See the [v6.2 contract](../docs/ROUND_POWERS_AND_LOADOUTS.md) for protection, visibility and collision edge cases.
 
 ## 4. Why Players Come Back
 
@@ -154,16 +155,16 @@ No unlock/reward system is added just to fill an application section. Agree the 
 
 ## 6. Mobile-First
 
-| Verb               | Touch                                                                                 | Desktop                                         |
-| ------------------ | ------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| Move / aim         | Native joystick; normalized direction and quick turning.                              | Screen-relative WASD; no cursor-aim dependency. |
-| Throw              | Explicit THROW ALIEN button when an eligible target is near.                          | E; contact alone does nothing.                  |
-| Prepare            | Tap one of nine pre-match slots, replace and reorder it; whole-item catalog pages.    | Same pointer interactions.                      |
-| Activate / reorder | Tap the single ready card or ORDER DECK; movement/game clock continue.                | F activates; pointer changes order.             |
-| Contain            | Tap the victim-only timed targets; visible sent/hit/miss feedback, no hover required. | Pointer click with optional hover feedback.     |
-| Regroup            | Tap Rematch/Main Menu or optional emoji reactions.                                    | Same pointer interactions.                      |
+| Verb               | Touch                                                                                       | Desktop                                         |
+| ------------------ | ------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Move / aim         | Native joystick; normalized direction and quick turning.                                    | Screen-relative WASD; no cursor-aim dependency. |
+| Throw              | Explicit THROW ALIEN button when an eligible target is near.                                | E; contact alone does nothing.                  |
+| Prepare            | Tap one of nine slots, preview a catalog card, confirm Equip and reorder; whole-item pages. | Same pointer interactions.                      |
+| Activate / reorder | Tap the single ready card or ORDER DECK; movement/game clock continue.                      | F activates; pointer changes order.             |
+| Contain            | Tap the victim-only timed targets; visible sent/hit/miss feedback, no hover required.       | Pointer click with optional hover feedback.     |
+| Regroup            | Tap Rematch/Main Menu or optional emoji reactions.                                          | Same pointer interactions.                      |
 
-**UI:** Bottom-center throw action, reactions to the left and one ready card plus queue control to the right. Top HUD exposes round, danger and numeric score; a latest-only 0.9s top-right notification identifies activated powers/casters. Three deck blocks, explicit selection context and whole-item pages replace thick native scene scrollbars. Device insets apply once; native DCL account/chat/settings remain native.
+**UI:** Bottom-center throw action, reactions to the left and one ready card plus queue control to the right. Top HUD exposes round, danger and numeric score; a latest-only 0.9s top-right notification identifies activated powers/casters. Three round blocks, a portrait-card library, explicit preview/equip details and whole-item pages replace thick native scene scrollbars. Narrow layouts switch panes instead of shrinking three columns together. Device insets apply once; native DCL account/chat/settings remain native.
 
 **Performance targets, not certification:** 30 fps on a named mobile device/client and 60 fps on recommended desktop hardware. Record device/OS/client, load time, frame pacing, input latency and memory through a match and repeated rematches. Profile the eight-player/Shadow peak, transparency and UI around native controls. Actual device measurements are pending.
 

@@ -16,7 +16,9 @@ Dependency versions are recorded in `package-lock.json`. Each dependency retains
 
 ## Project art and audio
 
-- The sci-fi frame/fill PNGs are original procedural geometry and gradients authored in `scripts/Generate-SciFiSkins.ps1`; the generated approval sheet remains an art-source reference, not a cropped asset source.
+- The six tutorial pictograms are original procedural drawings in `scripts/Generate-TutorialIcons.ps1`. See [Tutorial guide](docs/TUTORIAL_GUIDE.md) for the exported files and captions. The five new AI-generated logo concepts and their complete prompts are recorded in [Logo exploration v002](docs/BRAND_EXPLORATION_V002.md); the owner-selected Arcade blue logo is the only new concept used at runtime. Generation does not establish trademark clearance or exclusivity.
+
+- The sci-fi frame/fill PNGs are original procedural geometry and gradients authored in `scripts/Generate-SciFiSkins.ps1` (v001) and `scripts/Generate-SciFiRefinement.ps1` (v002 bezels and pedestal); the generated approval sheet remains an art-source reference, not a cropped asset source.
 - Astronaut, seat, environment and atlas files were supplied by the creator for this game. Final ownership/redistribution declaration and any external atlas-source permissions: **TBD with the creator**.
 - Logo/card visuals were generated for the project; their prompt record is in [Generated UI Art Prompts](docs/ART_PROMPTS.md). Generated concepts are references, not proof of a final production model or exclusivity.
 - Music was supplied to the project. Composer/source and redistribution permission: **TBD with the creator**. Do not describe it as royalty-free without the actual permission record.

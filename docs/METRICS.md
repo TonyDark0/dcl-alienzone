@@ -1,6 +1,6 @@
 # Metrics and Validation Plan
 
-Updated 2026-10-31 for v6.1 running tag. This is an observation/instrumentation plan, not a claim that an analytics pipeline or measured retention exists. It replaces seated hold-band and dual-category metrics. No new tracking service is authorized by this document.
+Updated 2026-10-31 for v6.2 running tag. This is an observation/instrumentation plan, not a claim that an analytics pipeline or measured retention exists. It replaces seated hold-band and dual-category metrics. No new tracking service is authorized by this document.
 
 ## Privacy
 
@@ -39,7 +39,7 @@ These records may begin as a manual playtest sheet. Runtime game events do not i
 
 ## Balance and technical checks
 
-- Separate transfer, coin, activation, untouched-round, containment and Shadow-trap points.
+- Separate transfer, coin, activation, untouched-round, containment, Shadow-trap and Vacune-success points. Chaos/Symbiosis success attribution reuses the transfer point; never double-count it in totals. Record Chaos's 3s same-alien window and Vacune's once-only accepted foreign Freeze/Echo condition.
 - Compare humans/bots under equal base speed and effect rules, accounting for experience and active player count.
 - Review avoided-alien versus aggressive-transfer strategies, early-leader conversion, card choices and tactical value.
 - Inspect range/arrival/anti-return rejections, hidden/immune targets, Echo occupancy and ownership consistency.

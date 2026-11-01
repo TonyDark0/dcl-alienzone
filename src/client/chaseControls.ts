@@ -21,7 +21,7 @@ export function setupChaseControls() {
         Number(inputSystem.isPressed(InputAction.IA_FORWARD)) - Number(inputSystem.isPressed(InputAction.IA_BACKWARD))
       const forward = Math.min(1, Math.hypot(x, z))
       const yaw = forward > 0 ? Math.atan2(x, z) : lastYaw
-      if (inputSystem.isTriggered(InputAction.IA_PRIMARY, PointerEventType.PET_DOWN)) requestPass()
+      if (inputSystem.isTriggered(InputAction.IA_JUMP, PointerEventType.PET_DOWN)) requestPass()
       if (inputSystem.isTriggered(InputAction.IA_SECONDARY, PointerEventType.PET_DOWN)) requestCurrentCard()
       elapsed += Math.max(0, dt)
       const aimChanged = Math.abs(Math.atan2(Math.sin(yaw - lastYaw), Math.cos(yaw - lastYaw))) > 0.025

@@ -1,10 +1,10 @@
-# Round Loadouts and Powers — v6.1
+# Round Loadouts and Powers — v6.2
 
-Owner-approved running-mode revision, 2026-10-31. This supersedes older deck/card semantics, including armed redirect Chaos; the archived seated engine is unchanged. No publishing or native client launch is authorized.
+Owner-approved running-mode revision, 2026-10-31. This supersedes older deck/card semantics, including armed redirect Chaos and unconditional Epic scoring; the archived seated engine is unchanged. No publishing or native client launch is authorized.
 
 ## Preparation and categories
 
-Play New Match opens a touch-compatible deck builder **before joining the match**. Prepare three ordered decks of exactly three cards each, one deck per round. Three separate round blocks display all nine numbered slots. Tap a slot in any round; the replacement catalog names the exact round and card being edited. Tap REPLACE to change only that slot, or use EARLIER / LATER to move the selected card within that round. Card 1 is used first. Already-placed Epics show their occupied round/slot and cannot be duplicated; replacing one frees it for another slot. READY · FIND MATCH submits the complete plan. The server validates it before starting; future-round decks cannot change after entry. Rematch reuses the submitted plan; Main Menu permits editing before a new match.
+Play New Match opens a touch-compatible deck builder **before joining the match**. Prepare three ordered decks of exactly three cards each, one deck per round. Three separate round blocks display all nine numbered slots. Tap a slot in any round; the replacement catalog names the exact round and card being edited. The portrait-card library has All/General/Epic filters. Choosing an option opens a preview, not a replacement. EQUIP CARD changes only the highlighted slot; EARLIER / LATER moves the selected equipped card within that round. Card 1 is used first. Already-placed Epics remain inspectable, show their occupied round/slot and cannot be equipped twice; replacing one frees it for another slot. READY · FIND MATCH submits the complete plan. The server validates it before starting; future-round decks cannot change after entry. Rematch reuses the submitted plan; Main Menu permits editing before a new match.
 
 | Category | Color  | Availability                                               | Cards                                 |
 | -------- | ------ | ---------------------------------------------------------- | ------------------------------------- |
@@ -19,7 +19,8 @@ Each round activates only its own planned deck. Discard **all** remaining cards 
 ## Points and transfer safeguards
 
 - Every accepted card activation awards +1 once, including automatic activation on a Rare pickup. Loading, reordering, rejected actions, repeated requests and merely armed/spent cards award nothing.
-- A successful transfer still awards +1 to its outgoing holder, for either alien. A successful Symbiosis can earn one transfer point in addition to its activation point. Chaos teleportation is not a transfer and grants only the activation point.
+- A successful transfer still awards +1 to its outgoing holder, for either alien. For Symbiosis and a qualifying Chaos follow-up, that existing transfer point is the Epic's second point: never add a third. One transfer cannot award separate Chaos and Symbiosis bonuses.
+- Vacune grants its second point once when someone else successfully activates Freeze or Echo during its active protection. Later activations never grant more; its immunity/visibility continue unchanged.
 - Shadow awards +1 when activated and another +1 only if an attacker actually attempts a valid throw into that decoy. It does not award points for ordinary expiry.
 - Coins, untouched-round and containment bonuses retain their existing rules.
 - Each alien separately protects its immediate giver from receiving that same alien back for 2.5s after transfer. This is not global immunity: another recipient or the other alien can still reach that astronaut if otherwise eligible. The UI, bots and Symbiosis all use the same server eligibility checks; teleportation does not reset protection.
@@ -54,6 +55,8 @@ Echo can be passed for the same +1, respects anti-return/proximity/arrival/occup
 
 On activation, immediately teleport the caster to a random valid point in the 30×15m arena. There is no target or destination selection. This may escape a nearby pursuer or land near a different threat; destinations are not scored for safety. Consume Chaos immediately and advance the queue. It remains one Epic slot per match and grants the ordinary +1 activation point, not a transfer point.
 
+If the caster was carrying an alien at activation and successfully transfers that same alien/turn within 3s (inclusive), mark Chaos successful. The ordinary +1 transfer is its second point, for two total; do not add another award. Throwing later still earns the ordinary point but is not a Chaos success. Acquiring an alien after an empty-handed teleport does not qualify. Rejected throws and decoy hits do not qualify; takeover clears the window. A Symbiosis transfer may satisfy the same window, but its one transfer point is never counted twice.
+
 The server uses an isolated seeded stream, a 0.45m edge margin, the existing 4m central-furniture clearance, at least 2m displacement and 0.75m body separation. These are landing-validity checks, not protection from danger: the new location may be within throw range of another astronaut. Keep the carried original or Echo, shared fuse, arrival grace, anti-return deadline and all active effects unchanged. Chaos never redirects a later alien, grants no immunity and never locks ordering. Existing 1.2s activation cooldown still applies. If no valid destination is found after bounded retries/grid fallback, reject without consuming the card or awarding points.
 
 Teleport snapshots carry a monotonic revision so avatars/nameplates/held-alien markers snap rather than sliding across the map. The tracked camera follows the same displayed pose. Proximity caches are cleared. Coin/power contact tests start at the new position on the next simulation step; the intervening line is not traversed or collected. Bots call the same activation API and cannot choose a safer destination.
@@ -70,11 +73,13 @@ At most eight simultaneous clones are possible (one Epic slot per owner per matc
 
 Requires an arrived alien. Fire along the authoritative facing, straight ahead for at most 5m, with a 0.4m body radius. Resolve the first body intersecting the segment immediately; the short flight marker is presentation only. Never bend or automatically aim at another player.
 
-A valid real target receives the alien and grants the ordinary transfer point. An immune, occupied or return-protected first body stops the shot without transfer; it cannot tunnel through to a later player. A miss consumes the card but leaves the alien with the caster. Every accepted shot still earns its activation point. No held/arrived alien means rejection without consumption or points. A decoy follows Shadow's trap rule.
+A valid real target receives the alien and grants the ordinary transfer point. An immune, occupied or return-protected first body stops the shot without transfer; it cannot tunnel through to a later player. A miss consumes the card but leaves the alien with the caster. Every accepted shot still earns its activation point. A successful shot therefore yields two points total: one firing point and the existing transfer point, not a third success award. No held/arrived alien means rejection without consumption or points. A decoy follows Shadow's trap rule.
 
 ### Vacune
 
 Round-long protection from Freeze and **incoming Echo only**, plus visibility of invisible astronauts and identification of Shadow decoys. It does not protect against the original alien, remove an alien already held, reveal private hands, or prevent a takeover. Clears a current slow on activation. The server sends hidden coordinates/forecasts only to the vaccinated recipient (and the invisible owner), never globally. Ends at takeover and cannot carry over to another deck.
+
+Activation awards +1. The first accepted foreign Freeze or Echo activation while this vaccine is active awards one additional +1, then consumes only the pending reward, not the protection. Echo counts on successful board activation even though vaccinated astronauts are excluded from its destination pool; there need not be an attempted targeted hit. Own activations, unconsumed/rejected Echo, repeated requests, earlier effects, ordinary Echo throws, Invisible and Shadow never qualify. Multiple active vaccinated owners resolve independently. Expiry/takeover clears pending reward state.
 
 ## Presentation and acceptance
 

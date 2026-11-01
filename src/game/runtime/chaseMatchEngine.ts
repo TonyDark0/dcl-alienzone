@@ -21,6 +21,7 @@ import { planChaseBot, roundStarter, type BotPlanMemory } from '../rules/chaseBo
 import { createRoundCoins, resolveCoinContacts } from '../rules/chaseCoins'
 import { nearbyThrowTarget, type RecentThrowTarget } from '../rules/throwProximity'
 import { botLoadout, handForRound, validateLoadout, type MatchLoadout } from '../rules/loadouts'
+import { isChaosSuccess, isVacuneSuccess, type ChaosFollowup } from '../rules/epicScoring'
 import {
   chaosDestination,
   createRoundPowers,
@@ -44,10 +45,12 @@ export class ChaseMatchEngine extends MatchEngine {
   private loadouts = new Map<SeatId, MatchLoadout>()
   private returnProtection = new Map<AlienId, { giver: SeatId; receiver: SeatId; turn: number; until: number }>()
   private chaosCasts = 0
+  private chaosFollowups = new Map<SeatId, ChaosFollowup>()
+  private vacuneBonusPending = new Set<SeatId>()
 
   constructor(seed = 1, matchId = `chase-${seed}`, unlocked: readonly ChaseCardType[] = STARTER_CARDS) {
     super(seed, matchId)
-    this.state.rulesVersion = '6.1-chaos-teleport'
+    this.state.rulesVersion = '6.2-epic-success-scoring'
     this.state.arena = {
       players: this.state.seats.map((seat) => initialChasePlayer(seat.id)),
       coins: [],
@@ -88,6 +91,8 @@ export class ChaseMatchEngine extends MatchEngine {
     this.recentRecipients.clear()
     this.throwTargets.clear()
     this.returnProtection.clear()
+    this.chaosFollowups.clear()
+    this.vacuneBonusPending.clear()
     // Discard the entire previous round; never carry unused cards or legacy Echo grants.
     for (const seat of s.seats) {
       if (s.round > 1) seat.hand = handForRound(this.loadouts.get(seat.id)!, s.round, `${s.matchId}-${seat.id}`)
@@ -288,10 +293,12 @@ export class ChaseMatchEngine extends MatchEngine {
     )
   }
 
-  private transfer(alien: AlienState, target: SeatId): boolean {
+  private transfer(alien: AlienState, target: SeatId, via?: 'SYMBIOSIS'): boolean {
     if (!this.eligibleTarget(alien, target)) return false
     const s = this.state
     const source = alien.holderSeatId
+    const chaosSuccess = isChaosSuccess(this.chaosFollowups.get(source), alien, s.round, s.now)
+    this.chaosFollowups.delete(source)
     this.throwTargets.delete(alien.id)
     this.recentRecipients.set(source, { seatId: target, until: s.now + 4 })
     alien.holderSeatId = target
@@ -307,8 +314,34 @@ export class ChaseMatchEngine extends MatchEngine {
     s.arena!.players[target].touchedThisRound = true
     s.seats[source].heat++
     s.seats[source].successfulPasses++
-    this.emit('PASS', alien.id, [source, target], 1, `${s.seats[source].displayName}: +1`)
+    const success = [chaosSuccess ? 'CHAOS' : '', via ?? ''].filter(Boolean).join(' + ')
+    this.emit(
+      'PASS',
+      alien.id,
+      [source, target],
+      1,
+      `${s.seats[source].displayName}: ${success ? success + ' SUCCESS ' : ''}+1`,
+      via ?? (chaosSuccess ? 'CHAOS' : undefined)
+    )
     return true
+  }
+
+  /** One success point for this vaccine, regardless of later Freeze/Echo activations. */
+  private awardVacuneSuccesses(caster: SeatId, power: 'FREEZE' | 'DUPLICATE') {
+    const s = this.state
+    for (const player of s.arena!.players) {
+      if (!isVacuneSuccess(player, caster, power, s.now, this.vacuneBonusPending.has(player.seatId))) continue
+      this.vacuneBonusPending.delete(player.seatId)
+      s.seats[player.seatId].heat++
+      this.emit(
+        'REACTION_RESOLVED',
+        power === 'DUPLICATE' ? 'ECHO' : 'ORIGINAL',
+        [player.seatId],
+        1,
+        `${s.seats[player.seatId].displayName}: VACUNE SUCCESS +1`,
+        'VACUNE'
+      )
+    }
   }
 
   orderDeck(seatId: SeatId, cardIds: string[]): ActionResult {
@@ -366,6 +399,15 @@ export class ChaseMatchEngine extends MatchEngine {
         ...(s.arena!.shadows ?? [])
       ])
       if (!destination) return no('No valid teleport destination is available.')
+      const held = s.aliens.find((alien) => alien.holderSeatId === seatId)
+      if (held)
+        this.chaosFollowups.set(seatId, {
+          alienId: held.id,
+          turn: held.turn,
+          round: s.round,
+          activatedAt: s.now
+        })
+      else this.chaosFollowups.delete(seatId)
       this.chaosCasts++
       player.x = destination.x
       player.z = destination.z
@@ -401,6 +443,7 @@ export class ChaseMatchEngine extends MatchEngine {
     } else if (card.type === 'VACUNE') {
       player.vaccinatedUntil = s.fuseEndsAt
       player.frozenUntil = 0
+      this.vacuneBonusPending.add(seatId)
       card.state = 'ACTIVE'
     } else if (card.type === 'SHADOW') {
       s.arena!.shadows!.push({
@@ -434,13 +477,14 @@ export class ChaseMatchEngine extends MatchEngine {
         endsAt: s.now + 0.35
       })
       if (hit?.shadow) this.hitShadow(alien, hit.shadow)
-      else if (hit) this.transfer(alien, hit.seatId)
+      else if (hit) this.transfer(alien, hit.seatId, 'SYMBIOSIS')
       card.state = 'SPENT'
     }
     seat.interventionReadyAt = s.now + 1.2
     seat.heat++
     armFirstCard(seat.hand)
     this.emit('CARD', targetId, [seatId], 1, `${seat.displayName}: ${CHASE_CARD_DETAILS[card.type].name} +1`, card.type)
+    if (card.type === 'FREEZE') this.awardVacuneSuccesses(seatId, 'FREEZE')
     return yes()
   }
 
@@ -500,6 +544,7 @@ export class ChaseMatchEngine extends MatchEngine {
         `${s.seats[collector].displayName}: ${CHASE_CARD_DETAILS[power.type].name} +1`,
         power.type
       )
+      if (power.type === 'DUPLICATE') this.awardVacuneSuccesses(collector, 'DUPLICATE')
       return false
     })
     this.updateThrowTargets()
@@ -592,6 +637,8 @@ export class ChaseMatchEngine extends MatchEngine {
     this.state.arena!.powers = []
     this.state.arena!.shadows = []
     this.state.arena!.shots = []
+    this.chaosFollowups.clear()
+    this.vacuneBonusPending.clear()
     this.returnProtection.clear()
     this.throwTargets.clear()
     for (const player of this.state.arena!.players) {
